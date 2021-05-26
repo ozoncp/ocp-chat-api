@@ -23,7 +23,7 @@ func New(deps Deps) *Chat {
 }
 
 func (c *Chat) String() string {
-	return fmt.Sprintf("Chat. %+v", c)
+	return fmt.Sprintf("Chat. { ID: %v, classroomID: %v, link: %v", c.id, c.classroomId, c.link)
 }
 
 func (c *Chat) SetClassroomID(classroomID uint64) {
