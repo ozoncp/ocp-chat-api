@@ -3,3 +3,9 @@ build:
 
 run:
 	@./bin/ocp-chat-api
+
+test:
+	go test -test.v ./...
+
+cover: test
+	go tool cover -html=coverage.out
