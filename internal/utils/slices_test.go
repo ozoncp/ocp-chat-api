@@ -81,6 +81,11 @@ func TestInverseMap(t *testing.T) {
 				"three": 3,
 			},
 		},
+		{
+			InputMap:  map[int]string{},
+			ExpectErr: nil,
+			ExpectMap: map[string]int{},
+		},
 	}
 
 	for _, tt := range tests {
