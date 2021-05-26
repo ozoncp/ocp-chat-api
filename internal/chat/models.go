@@ -14,7 +14,7 @@ type Chat struct {
 	link        string
 }
 
-func New(deps Deps) *Chat {
+func New(deps *Deps) *Chat {
 	return &Chat{
 		deps.Id,
 		deps.ClassroomId,

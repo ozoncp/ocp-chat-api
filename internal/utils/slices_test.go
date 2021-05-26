@@ -2,6 +2,7 @@ package utils_test
 
 import (
 	"errors"
+	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -128,6 +129,67 @@ func TestExcludeMembersOfList(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		gotOutSlice := utils.ExcludeMembersOfList(tt.InputSlice, tt.FilterSlice)
+		assert.Equal(t, tt.ExpectOutSlice, gotOutSlice)
+	}
+}
+
+func TestSplitChatListToChunks(t *testing.T) {
+	type TestCase struct {
+		InputSlice     []chat.Chat
+		ChunkSize      int
+		ExpectOutSlice [][]chat.Chat
+	}
+
+	chatDeps0 := &chat.Deps{
+		Id:          0,
+		ClassroomId: 1337,
+		Link:        "http://welcome_to_lowload.com",
+	}
+
+	chatDeps1 := &chat.Deps{
+		Id:          0,
+		ClassroomId: 2288,
+		Link:        "http://welcome_to_lowload.com",
+	}
+
+	chatDeps2 := &chat.Deps{
+		Id:          0,
+		ClassroomId: 1111,
+		Link:        "http://welcome_to_lowload.com",
+	}
+
+	chat0 := chat.New(chatDeps0)
+	chat1 := chat.New(chatDeps1)
+	chat2 := chat.New(chatDeps2)
+
+	tests := []TestCase{
+		{
+			InputSlice: []chat.Chat{*chat0, *chat1, *chat2},
+			ChunkSize:  2,
+			ExpectOutSlice: [][]chat.Chat{
+				{*chat0, *chat1},
+				{*chat2},
+			},
+		},
+		{
+			InputSlice: []chat.Chat{*chat0, *chat1, *chat2},
+			ChunkSize:  1,
+			ExpectOutSlice: [][]chat.Chat{
+				{*chat0},
+				{*chat1},
+				{*chat2},
+			},
+		},
+		{
+			InputSlice:     []chat.Chat{},
+			ChunkSize:      534234234234,
+			ExpectOutSlice: [][]chat.Chat{},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		gotOutSlice := utils.SplitChatListToChunks(tt.ChunkSize, tt.InputSlice...)
 		assert.Equal(t, tt.ExpectOutSlice, gotOutSlice)
 	}
 }
