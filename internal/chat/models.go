@@ -22,6 +22,10 @@ func New(deps *Deps) *Chat {
 	}
 }
 
+func (c *Chat) ID() uint64 {
+	return c.id
+}
+
 func (c *Chat) String() string {
 	return fmt.Sprintf("Chat. { ID: %v, classroomID: %v, link: %v", c.id, c.classroomId, c.link)
 }

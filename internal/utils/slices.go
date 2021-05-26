@@ -66,3 +66,14 @@ func SplitChatListToChunks(chunkSize int, slice ...chat.Chat) [][]chat.Chat {
 	}
 	return chunks
 }
+
+func ChatsMap(chats []chat.Chat) (map[uint64]chat.Chat, error) {
+	chatsMap := make(map[uint64]chat.Chat, len(chats))
+	for _, c := range chats {
+		if _, found := chatsMap[c.ID()]; found {
+			return nil, errors.Wrapf(ErrDuplicateVal, "key %v is in keys map yet", c.ID())
+		}
+		chatsMap[c.ID()] = c
+	}
+	return chatsMap, nil
+}

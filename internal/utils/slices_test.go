@@ -2,12 +2,31 @@ package utils_test
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
+
+var chatDeps0 = &chat.Deps{
+	Id:          0,
+	ClassroomId: 1337,
+	Link:        "http://welcome_to_lowload.com",
+}
+
+var chatDeps1 = &chat.Deps{
+	Id:          11,
+	ClassroomId: 2288,
+	Link:        "http://welcome_to_lowload.com",
+}
+
+var chatDeps2 = &chat.Deps{
+	Id:          11,
+	ClassroomId: 1111,
+	Link:        "http://welcome_to_lowload.com",
+}
 
 func TestSplitToChunks(t *testing.T) {
 	type TestCase struct {
@@ -135,27 +154,9 @@ func TestExcludeMembersOfList(t *testing.T) {
 
 func TestSplitChatListToChunks(t *testing.T) {
 	type TestCase struct {
-		InputSlice     []chat.Chat
-		ChunkSize      int
-		ExpectOutSlice [][]chat.Chat
-	}
-
-	chatDeps0 := &chat.Deps{
-		Id:          0,
-		ClassroomId: 1337,
-		Link:        "http://welcome_to_lowload.com",
-	}
-
-	chatDeps1 := &chat.Deps{
-		Id:          0,
-		ClassroomId: 2288,
-		Link:        "http://welcome_to_lowload.com",
-	}
-
-	chatDeps2 := &chat.Deps{
-		Id:          0,
-		ClassroomId: 1111,
-		Link:        "http://welcome_to_lowload.com",
+		InputSlice   []chat.Chat
+		ExpectError  error
+		ExpectOutMap map[uint64]chat.Chat
 	}
 
 	chat0 := chat.New(chatDeps0)
@@ -164,32 +165,28 @@ func TestSplitChatListToChunks(t *testing.T) {
 
 	tests := []TestCase{
 		{
-			InputSlice: []chat.Chat{*chat0, *chat1, *chat2},
-			ChunkSize:  2,
-			ExpectOutSlice: [][]chat.Chat{
-				{*chat0, *chat1},
-				{*chat2},
-			},
+			InputSlice:   []chat.Chat{*chat0, *chat1, *chat2},
+			ExpectError:  utils.ErrDuplicateVal,
+			ExpectOutMap: map[uint64]chat.Chat{},
 		},
 		{
-			InputSlice: []chat.Chat{*chat0, *chat1, *chat2},
-			ChunkSize:  1,
-			ExpectOutSlice: [][]chat.Chat{
-				{*chat0},
-				{*chat1},
-				{*chat2},
+			InputSlice:  []chat.Chat{*chat0, *chat1},
+			ExpectError: nil,
+			ExpectOutMap: map[uint64]chat.Chat{
+				0:  *chat0,
+				11: *chat1,
 			},
-		},
-		{
-			InputSlice:     []chat.Chat{},
-			ChunkSize:      534234234234,
-			ExpectOutSlice: [][]chat.Chat{},
 		},
 	}
 
 	for _, tt := range tests {
 		tt := tt
-		gotOutSlice := utils.SplitChatListToChunks(tt.ChunkSize, tt.InputSlice...)
-		assert.Equal(t, tt.ExpectOutSlice, gotOutSlice)
+		gotOutSlice, err := utils.ChatsMap(tt.InputSlice)
+		if tt.ExpectError != nil {
+			assert.True(t, errors.Is(err, tt.ExpectError))
+			continue
+		}
+		assert.Equal(t, nil, err)
+		assert.Equal(t, tt.ExpectOutMap, gotOutSlice)
 	}
 }
