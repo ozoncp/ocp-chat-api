@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"github.com/ozoncp/ocp-chat-api/internal/models"
 	errors "github.com/pkg/errors"
 	"math"
 )
@@ -49,4 +50,19 @@ func ExcludeMembersOfList(list []int, removeUs []int) []int {
 	}
 
 	return resultList
+}
+
+func SplitChatListToChunks(chunkSize int, slice ...models.Chat) [][]models.Chat {
+	length := len(slice)
+	chunkNum := length/chunkSize + 1
+
+	chunks := make([][]models.Chat, 0, length)
+	for i := 0; i < chunkNum; i++ {
+		end := int(math.Min(float64((i+1)*chunkSize), float64(length)))
+		newSlice := slice[i*chunkSize : end]
+		if len(newSlice) > 0 {
+			chunks = append(chunks, newSlice)
+		}
+	}
+	return chunks
 }
