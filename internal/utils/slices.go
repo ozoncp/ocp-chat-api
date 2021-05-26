@@ -41,7 +41,7 @@ func ExcludeMembersOfList(list []int, removeUs []int) []int {
 		removedMap[elem] = struct{}{}
 	}
 
-	var resultList []int
+	resultList := []int{}
 	for _, x := range list {
 		if _, filterMe := removedMap[x]; !filterMe {
 			resultList = append(resultList, x)

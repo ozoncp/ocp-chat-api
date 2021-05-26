@@ -113,6 +113,16 @@ func TestExcludeMembersOfList(t *testing.T) {
 			FilterSlice:    []int{1, 2, 3},
 			ExpectOutSlice: []int{4, 5, 6, 7, 8},
 		},
+		{
+			InputSlice:     []int{},
+			FilterSlice:    []int{},
+			ExpectOutSlice: []int{},
+		},
+		{
+			InputSlice:     []int{},
+			FilterSlice:    []int{1, 2, 3, 4, 5, 6},
+			ExpectOutSlice: []int{},
+		},
 	}
 
 	for _, tt := range tests {
