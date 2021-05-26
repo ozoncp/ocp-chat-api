@@ -1,9 +1,10 @@
 package utils_test
 
 import (
+	"errors"
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/stretchr/testify/assert"
-
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -42,5 +43,40 @@ func TestSplitToChunks(t *testing.T) {
 		tt := tt
 		gotOutSlice := utils.SplitToChunks(tt.ChunkSize, tt.InputSlice...)
 		assert.Equal(t, tt.ExpectOutSlice, gotOutSlice)
+	}
+}
+
+func TestInverseMap(t *testing.T) {
+	type TestCase struct {
+		InputMap  map[int]string
+		ExpectErr error
+		ExpectMap map[string]int
+	}
+
+	tests := []TestCase{
+		{
+			InputMap: map[int]string{
+				1: "one",
+				2: "two",
+				3: "three",
+			},
+			ExpectErr: nil,
+			ExpectMap: map[string]int{
+				"one":   1,
+				"two":   2,
+				"three": 3,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		gotMap, err := utils.InverseMap(tt.InputMap)
+		if tt.ExpectErr != nil {
+			assert.True(t, errors.Is(err, tt.ExpectErr))
+			continue
+		}
+		require.Equal(t, err, nil)
+		assert.Equal(t, tt.ExpectMap, gotMap)
 	}
 }

@@ -1,6 +1,11 @@
 package utils
 
-import "math"
+import (
+	errors "github.com/pkg/errors"
+	"math"
+)
+
+var ErrDuplicateVal = errors.New("value is duplicating, cannot fill correctly")
 
 func SplitToChunks(chunkSize int, slice ...int) [][]int {
 	length := len(slice)
@@ -15,4 +20,17 @@ func SplitToChunks(chunkSize int, slice ...int) [][]int {
 		}
 	}
 	return chunks
+}
+
+func InverseMap(m map[int]string) (map[string]int, error) {
+	inversed := make(map[string]int, len(m))
+	for key, value := range m {
+		if previousKey, found := inversed[value]; found {
+			return nil, errors.Wrapf(ErrDuplicateVal,
+				"try set map[%v] == %v but here is map[%v] == %v",
+				value, key, value, previousKey)
+		}
+		inversed[value] = key
+	}
+	return inversed, nil
 }
