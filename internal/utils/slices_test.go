@@ -67,6 +67,20 @@ func TestInverseMap(t *testing.T) {
 				"three": 3,
 			},
 		},
+		{
+			InputMap: map[int]string{
+				1:  "one",
+				11: "one",
+				2:  "two",
+				3:  "three",
+			},
+			ExpectErr: utils.ErrDuplicateVal,
+			ExpectMap: map[string]int{
+				"one":   1,
+				"two":   2,
+				"three": 3,
+			},
+		},
 	}
 
 	for _, tt := range tests {
