@@ -9,7 +9,10 @@ func SplitToChunks(chunkSize int, slice ...int) [][]int {
 	chunks := make([][]int, 0, length)
 	for i := 0; i < chunkNum; i++ {
 		end := int(math.Min(float64((i+1)*chunkSize), float64(length)))
-		chunks = append(chunks, slice[i*chunkSize:end])
+		newSlice := slice[i*chunkSize : end]
+		if len(newSlice) > 0 {
+			chunks = append(chunks, newSlice)
+		}
 	}
 	return chunks
 }

@@ -31,6 +31,11 @@ func TestSplitToChunks(t *testing.T) {
 				{1, 2, 3},
 			},
 		},
+		{
+			InputSlice:     []int{},
+			ChunkSize:      534234234234,
+			ExpectOutSlice: [][]int{},
+		},
 	}
 
 	for _, tt := range tests {
