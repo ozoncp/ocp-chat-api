@@ -34,3 +34,19 @@ func InverseMap(m map[int]string) (map[string]int, error) {
 	}
 	return inversed, nil
 }
+
+func ExcludeMembersOfList(list []int, removeUs []int) []int {
+	removedMap := make(map[int]struct{})
+	for _, elem := range removeUs {
+		removedMap[elem] = struct{}{}
+	}
+
+	var resultList []int
+	for _, x := range list {
+		if _, filterMe := removedMap[x]; !filterMe {
+			resultList = append(resultList, x)
+		}
+	}
+
+	return resultList
+}

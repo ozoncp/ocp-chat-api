@@ -99,3 +99,25 @@ func TestInverseMap(t *testing.T) {
 		assert.Equal(t, tt.ExpectMap, gotMap)
 	}
 }
+
+func TestExcludeMembersOfList(t *testing.T) {
+	type TestCase struct {
+		InputSlice     []int
+		FilterSlice    []int
+		ExpectOutSlice []int
+	}
+
+	tests := []TestCase{
+		{
+			InputSlice:     []int{1, 2, 3, 4, 5, 6, 7, 8},
+			FilterSlice:    []int{1, 2, 3},
+			ExpectOutSlice: []int{4, 5, 6, 7, 8},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		gotOutSlice := utils.ExcludeMembersOfList(tt.InputSlice, tt.FilterSlice)
+		assert.Equal(t, tt.ExpectOutSlice, gotOutSlice)
+	}
+}
