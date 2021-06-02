@@ -1,24 +1,37 @@
 package chat
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/ozoncp/ocp-chat-api/internal/message"
+)
+
+type MessageRepo interface {
+	GetMessages() []message.Message
+	RemoveMessageById(messageID string) error
+	DescribeMessageById(messageID string) (string, error)
+	ListMessages() string
+}
 
 type Deps struct {
 	Id          uint64
 	ClassroomId uint64
 	Link        string
+	Messages    MessageRepo
 }
 
 type Chat struct {
 	id          uint64
 	classroomId uint64
 	link        string
+	messages    MessageRepo
 }
 
 func New(deps *Deps) *Chat {
 	return &Chat{
-		deps.Id,
-		deps.ClassroomId,
-		deps.Link,
+		id:          deps.Id,
+		classroomId: deps.ClassroomId,
+		link:        deps.Link,
 	}
 }
 

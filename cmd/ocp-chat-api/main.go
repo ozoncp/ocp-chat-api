@@ -1,9 +1,13 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
+	chat2 "github.com/ozoncp/ocp-chat-api/internal/chat"
+	"github.com/ozoncp/ocp-chat-api/internal/message_repo"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"os"
 )
 
 var defaultLogger = log.Logger.With().Timestamp().Logger()
@@ -29,5 +33,19 @@ func Run() error {
 			}
 		}()
 	}
+
+	messageRepo := message_repo.NewMessageRepoInMemory()
+
+	chatDeps := &chat2.Deps{
+		Id:          1,
+		ClassroomId: 1,
+		Link:        "http://chatmychatwhereisit.com",
+		Messages:    messageRepo,
+	}
+
+	chat := chat2.New(chatDeps)
+
+	fmt.Printf("%+v it's chat", chat)
+
 	return nil
 }
