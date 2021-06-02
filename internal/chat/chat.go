@@ -11,6 +11,7 @@ type MessageRepo interface {
 	RemoveMessageById(messageID string) error
 	DescribeMessageById(messageID string) (string, error)
 	ListMessages() string
+	AddMessage(mess *message.Message)
 }
 
 type Deps struct {
@@ -57,4 +58,24 @@ func (c *Chat) SetLink(link string) {
 
 func (c *Chat) Link() string {
 	return c.link
+}
+
+func (c *Chat) GetMessages() []message.Message {
+	return c.messages.GetMessages()
+}
+
+func (c *Chat) AddMessage(mess *message.Message) {
+	c.messages.AddMessage(mess)
+}
+
+func (c *Chat) RemoveMessageById(messageID string) error {
+	return c.messages.RemoveMessageById(messageID)
+}
+
+func (c *Chat) DescribeMessageById(messageID string) (string, error) {
+	return c.messages.DescribeMessageById(messageID)
+}
+
+func (c *Chat) ListMessages() string {
+	return c.messages.ListMessages()
 }

@@ -13,5 +13,5 @@ type Message struct {
 }
 
 func (m *Message) String() string {
-	return fmt.Sprintf("%s: %v", m.ID, m.text)
+	return fmt.Sprintf("%s[%v]: %v", m.ID, m.userID, m.text)
 }

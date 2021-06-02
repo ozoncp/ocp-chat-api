@@ -1,9 +1,11 @@
 package utils
 
 import (
-	"github.com/ozoncp/ocp-chat-api/internal/chat"
-	errors "github.com/pkg/errors"
 	"math"
+
+	"github.com/ozoncp/ocp-chat-api/internal/chat"
+	"github.com/ozoncp/ocp-chat-api/internal/message"
+	errors "github.com/pkg/errors"
 )
 
 var ErrDuplicateVal = errors.New("value is duplicating, cannot fill correctly")
@@ -52,11 +54,11 @@ func ExcludeMembersOfList(list []int, removeUs []int) []int {
 	return resultList
 }
 
-func SplitChatListToChunks(chunkSize int, slice ...chat.Chat) [][]chat.Chat {
+func SplitMessagesListToChunks(chunkSize int, slice ...message.Message) [][]message.Message {
 	length := len(slice)
 	chunkNum := length/chunkSize + 1
 
-	chunks := make([][]chat.Chat, 0, length)
+	chunks := make([][]message.Message, 0, length)
 	for i := 0; i < chunkNum; i++ {
 		end := int(math.Min(float64((i+1)*chunkSize), float64(length)))
 		newSlice := slice[i*chunkSize : end]

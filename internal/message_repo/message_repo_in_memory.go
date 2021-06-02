@@ -22,6 +22,10 @@ func (c *MessageRepoInMemory) GetMessages() []message.Message {
 	return c.messages
 }
 
+func (c *MessageRepoInMemory) AddMessage(mess *message.Message) {
+	c.messages = append(c.messages, *mess)
+}
+
 func (c *MessageRepoInMemory) RemoveMessageById(messageID string) error {
 	for n, mess := range c.messages {
 		if mess.ID == messageID {
