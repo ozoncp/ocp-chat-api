@@ -30,6 +30,7 @@ func (f *FlusherMessagesToChat) Flush(messages []message.Message) {
 	fmt.Printf("num of chunks: %d\n", len(chunks))
 	for _, chunk := range chunks {
 		for _, m := range chunk {
+			fmt.Printf("msg: %v\n", m)
 			f.messageRepo.AddMessage(&m)
 		}
 	}
