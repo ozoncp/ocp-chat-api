@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/ozoncp/ocp-chat-api/internal/message"
 )
@@ -66,6 +67,7 @@ func (c *Chat) GetMessages() []message.Message {
 
 func (c *Chat) AddMessage(mess *message.Message) {
 	c.messages.AddMessage(mess)
+	_, _ = fmt.Fprintf(os.Stderr, "add mess %v \n", mess)
 }
 
 func (c *Chat) RemoveMessageById(messageID string) error {
