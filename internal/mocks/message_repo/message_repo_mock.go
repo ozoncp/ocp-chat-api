@@ -46,6 +46,18 @@ func (mr *MockMessageRepoMockRecorder) AddMessage(mess interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMessage", reflect.TypeOf((*MockMessageRepo)(nil).AddMessage), mess)
 }
 
+// AddMessagesBatch mocks base method.
+func (m *MockMessageRepo) AddMessagesBatch(mess []*message.Message) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddMessagesBatch", mess)
+}
+
+// AddMessagesBatch indicates an expected call of AddMessagesBatch.
+func (mr *MockMessageRepoMockRecorder) AddMessagesBatch(mess interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMessagesBatch", reflect.TypeOf((*MockMessageRepo)(nil).AddMessagesBatch), mess)
+}
+
 // DescribeMessageById mocks base method.
 func (m *MockMessageRepo) DescribeMessageById(messageID string) (string, error) {
 	m.ctrl.T.Helper()
@@ -62,10 +74,10 @@ func (mr *MockMessageRepoMockRecorder) DescribeMessageById(messageID interface{}
 }
 
 // GetMessages mocks base method.
-func (m *MockMessageRepo) GetMessages() []message.Message {
+func (m *MockMessageRepo) GetMessages() []*message.Message {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetMessages")
-	ret0, _ := ret[0].([]message.Message)
+	ret0, _ := ret[0].([]*message.Message)
 	return ret0
 }
 

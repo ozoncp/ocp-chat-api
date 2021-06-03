@@ -8,11 +8,12 @@ import (
 )
 
 type MessageRepo interface {
-	GetMessages() []message.Message
+	GetMessages() []*message.Message
 	RemoveMessageById(messageID string) error
 	DescribeMessageById(messageID string) (string, error)
 	ListMessages() string
 	AddMessage(mess *message.Message)
+	AddMessagesBatch(mess []*message.Message)
 }
 
 //go:generate mockgen --source=./chat.go -destination=../mocks/message_repo/message_repo_mock.go -package=message_repo
@@ -63,13 +64,17 @@ func (c *Chat) Link() string {
 	return c.link
 }
 
-func (c *Chat) GetMessages() []message.Message {
+func (c *Chat) GetMessages() []*message.Message {
 	return c.messages.GetMessages()
 }
 
 func (c *Chat) AddMessage(mess *message.Message) {
 	c.messages.AddMessage(mess)
 	_, _ = fmt.Fprintf(os.Stderr, "add mess %v \n", mess)
+}
+
+func (c *Chat) AddMessagesBatch(mess []*message.Message) {
+	c.messages.AddMessagesBatch(mess)
 }
 
 func (c *Chat) RemoveMessageById(messageID string) error {

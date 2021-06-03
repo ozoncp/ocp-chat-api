@@ -11,19 +11,23 @@ import (
 var ErrMessageNotFound = errors.New("no message with this ID")
 
 type MessageRepoInMemory struct {
-	messages []message.Message
+	messages []*message.Message
 }
 
 func NewMessageRepoInMemory() *MessageRepoInMemory {
 	return &MessageRepoInMemory{}
 }
 
-func (c *MessageRepoInMemory) GetMessages() []message.Message {
+func (c *MessageRepoInMemory) GetMessages() []*message.Message {
 	return c.messages
 }
 
 func (c *MessageRepoInMemory) AddMessage(mess *message.Message) {
-	c.messages = append(c.messages, *mess)
+	c.messages = append(c.messages, mess)
+}
+
+func (c *MessageRepoInMemory) AddMessagesBatch(mess []*message.Message) {
+	c.messages = append(c.messages, mess...)
 }
 
 func (c *MessageRepoInMemory) RemoveMessageById(messageID string) error {

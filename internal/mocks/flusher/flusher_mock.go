@@ -35,7 +35,7 @@ func (m *MockFlusher) EXPECT() *MockFlusherMockRecorder {
 }
 
 // Flush mocks base method.
-func (m *MockFlusher) Flush(messages []message.Message) {
+func (m *MockFlusher) Flush(messages []*message.Message) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Flush", messages)
 }

@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
-	"github.com/ozoncp/ocp-chat-api/internal/flusher"
 	"github.com/ozoncp/ocp-chat-api/internal/message"
 
 	chat2 "github.com/ozoncp/ocp-chat-api/internal/chat"
@@ -17,7 +15,7 @@ import (
 var defaultLogger = log.Logger.With().Timestamp().Logger()
 
 type Flusher interface {
-	Flush(messages []message.Message)
+	Flush(messages []*message.Message)
 }
 
 func main() {
@@ -56,29 +54,6 @@ func Run() error {
 	chat := chat2.New(chatDeps)
 
 	fmt.Printf("%+v it's chat\n", chat)
-
-	m1 := message.Message{
-		Timestamp: time.Time{},
-		ID:        "asdfsdf",
-	}
-
-	m2 := message.Message{
-		Timestamp: time.Time{},
-		ID:        "r2r2fda",
-	}
-
-	messageList := []message.Message{m1, m2}
-
-	flusherDeps := flusher.Deps{
-		ChunkSize:         1,
-		MessageRepository: messageRepo,
-	}
-
-	//nolint:gosimple // not finished application, ok
-	var myFlusher Flusher
-	myFlusher = flusher.NewFlusherMessagesToChat(flusherDeps)
-	myFlusher.Flush(messageList)
-	fmt.Printf("%+v finished", myFlusher)
 
 	return nil
 }

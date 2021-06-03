@@ -25,13 +25,11 @@ func NewFlusherMessagesToChat(deps Deps) *FlusherMessagesToChat {
 	}
 }
 
-func (f *FlusherMessagesToChat) Flush(messages []message.Message) {
+func (f *FlusherMessagesToChat) Flush(messages []*message.Message) {
 	chunks := utils.SplitMessagesListToChunks(f.chunkSize, messages...)
 	fmt.Printf("num of chunks: %d\n", len(chunks))
 	for _, chunk := range chunks {
-		for _, m := range chunk {
-			fmt.Printf("msg: %v\n", m)
-			f.messageRepo.AddMessage(&m)
-		}
+		fmt.Printf("msg: %v\n", chunk)
+		f.messageRepo.AddMessagesBatch(chunk)
 	}
 }
