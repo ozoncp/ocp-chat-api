@@ -15,6 +15,8 @@ type MessageRepo interface {
 	AddMessage(mess *message.Message)
 }
 
+//go:generate mockgen --source=./chat.go -destination=../mocks/message_repo/message_repo_mock.go -package=message_repo
+
 type Deps struct {
 	Id          uint64
 	ClassroomId uint64

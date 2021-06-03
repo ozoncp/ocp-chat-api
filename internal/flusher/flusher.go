@@ -18,7 +18,7 @@ type Deps struct {
 	MessageRepository chat.MessageRepo
 }
 
-func New(deps Deps) *FlusherMessagesToChat {
+func NewFlusherMessagesToChat(deps Deps) *FlusherMessagesToChat {
 	return &FlusherMessagesToChat{
 		chunkSize:   deps.ChunkSize,
 		messageRepo: deps.MessageRepository,

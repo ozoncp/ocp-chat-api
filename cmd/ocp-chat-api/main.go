@@ -16,11 +16,17 @@ import (
 
 var defaultLogger = log.Logger.With().Timestamp().Logger()
 
+type Flusher interface {
+	Flush(messages []message.Message)
+}
+
 func main() {
 	if err := Run(); err != nil {
 		defaultLogger.Fatal().Err(err).Msg("run application")
 	}
 }
+
+//go:generate mockgen --source=./main.go -destination=../../internal/mocks/flusher/flusher_mock.go -package=flusher
 
 func Run() error {
 	defaultLogger.Info().Msg("Hi, Victor Akhlynin will write this project")
@@ -68,7 +74,8 @@ func Run() error {
 		MessageRepository: messageRepo,
 	}
 
-	myFlusher := flusher.New(flusherDeps)
+	var myFlusher Flusher
+	myFlusher = flusher.NewFlusherMessagesToChat(flusherDeps)
 	myFlusher.Flush(messageList)
 	fmt.Printf("%+v finished", myFlusher)
 

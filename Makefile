@@ -12,3 +12,6 @@ cover: test
 
 lint:
 	golangci-lint run -v
+
+generate-mocks:
+	go generate ./...
