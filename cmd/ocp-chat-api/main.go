@@ -74,6 +74,7 @@ func Run() error {
 		MessageRepository: messageRepo,
 	}
 
+	//nolint:gosimple // not finished application, ok
 	var myFlusher Flusher
 	myFlusher = flusher.NewFlusherMessagesToChat(flusherDeps)
 	myFlusher.Flush(messageList)
