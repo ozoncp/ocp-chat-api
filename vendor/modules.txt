@@ -1,5 +1,8 @@
 # github.com/davecgh/go-spew v1.1.0
 github.com/davecgh/go-spew/spew
+# github.com/golang/mock v1.5.0
+## explicit
+github.com/golang/mock/gomock
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
