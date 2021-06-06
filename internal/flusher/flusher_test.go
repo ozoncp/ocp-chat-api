@@ -49,7 +49,7 @@ var _ = Describe("Flusher", func() {
 		m = []*message.Message{}
 	})
 
-	Context("", func() {
+	Context("Flusher flush", func() {
 		BeforeEach(func() {})
 
 		JustBeforeEach(func() {
