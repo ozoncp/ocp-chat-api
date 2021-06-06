@@ -13,9 +13,5 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-/.idea/.gitignore
-/.idea/modules.xml
+/.idea
 /bin/ocp-chat-api
-/.idea/ocp-chat-api.iml
-/.idea/vcs.xml
-/.idea/watcherTasks.xml
