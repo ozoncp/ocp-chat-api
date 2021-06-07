@@ -3,6 +3,8 @@ package flusher_test
 import (
 	"fmt"
 
+	"github.com/onsi/gomega"
+
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 
 	"github.com/ozoncp/ocp-chat-api/internal/mocks/chat_repo"
@@ -80,7 +82,8 @@ var _ = Describe("Flusher", func() {
 			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(2)
 
 			myFlusher := flusher.NewFlusherMessagesToChat(flusherDeps)
-			myFlusher.Flush(messageList)
+			err := myFlusher.Flush(messageList)
+			gomega.Expect(err).To(gomega.BeNil())
 			fmt.Printf("%+v finished", myFlusher)
 		})
 
@@ -95,7 +98,8 @@ var _ = Describe("Flusher", func() {
 			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(2)
 
 			myFlusher := flusher.NewFlusherMessagesToChat(flusherDeps)
-			myFlusher.Flush(messageList)
+			err := myFlusher.Flush(messageList)
+			gomega.Expect(err).To(gomega.BeNil())
 			fmt.Printf("%+v finished", myFlusher)
 		})
 
@@ -110,7 +114,8 @@ var _ = Describe("Flusher", func() {
 			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(4)
 
 			myFlusher := flusher.NewFlusherMessagesToChat(flusherDeps)
-			myFlusher.Flush(messageList)
+			err := myFlusher.Flush(messageList)
+			gomega.Expect(err).To(gomega.BeNil())
 			fmt.Printf("%+v finished", myFlusher)
 		})
 	})
