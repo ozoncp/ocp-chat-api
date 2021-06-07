@@ -15,7 +15,7 @@ import (
 var defaultLogger = log.Logger.With().Timestamp().Logger()
 
 type Flusher interface {
-	Flush(chats []*chat.Chat)
+	Flush(chats []*chat.Chat) error
 }
 
 func main() {
@@ -65,7 +65,7 @@ func Run() error {
 	}
 	c3 := chat.New(chatDep3)
 
-	messageList := []*chat.Chat{c1, c2, c3}
+	chatList := []*chat.Chat{c1, c2, c3}
 
 	flusherDeps := flusher.Deps{
 		ChunkSize:      1,
@@ -75,7 +75,9 @@ func Run() error {
 	//nolint:gosimple // not finished application, ok
 	var myFlusher Flusher
 	myFlusher = flusher.NewFlusherMessagesToChat(flusherDeps)
-	myFlusher.Flush(messageList)
+	if err := myFlusher.Flush(chatList); err != nil {
+		return errors.Wrap(err, "flush chats to chat list")
+	}
 	fmt.Printf("%+v finished", myFlusher)
 
 	return nil

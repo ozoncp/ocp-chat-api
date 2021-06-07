@@ -18,16 +18,18 @@ func NewChatsRepoInMemory() *ChatsRepoInMemory {
 	return &ChatsRepoInMemory{}
 }
 
-func (c *ChatsRepoInMemory) GetAll() []*chat.Chat {
-	return c.chats
+func (c *ChatsRepoInMemory) GetAll() ([]*chat.Chat, error) {
+	return c.chats, nil
 }
 
-func (c *ChatsRepoInMemory) Add(ch *chat.Chat) {
+func (c *ChatsRepoInMemory) Add(ch *chat.Chat) error {
 	c.chats = append(c.chats, ch)
+	return nil
 }
 
-func (c *ChatsRepoInMemory) AddBatch(mess []*chat.Chat) {
+func (c *ChatsRepoInMemory) AddBatch(mess []*chat.Chat) error {
 	c.chats = append(c.chats, mess...)
+	return nil
 }
 
 func (c *ChatsRepoInMemory) RemoveByID(chatID uint64) error {
@@ -52,10 +54,10 @@ func (c *ChatsRepoInMemory) DescribeByID(chatID uint64) (string, error) {
 	return "", ErrChatNotFound
 }
 
-func (c *ChatsRepoInMemory) List() string {
+func (c *ChatsRepoInMemory) List() (string, error) {
 	list := make([]string, 0, len(c.chats))
 	for _, ch := range c.chats {
 		list = append(list, ch.String())
 	}
-	return strings.Join(list, "\n")
+	return strings.Join(list, "\n"), nil
 }
