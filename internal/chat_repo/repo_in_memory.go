@@ -10,29 +10,29 @@ import (
 
 var ErrChatNotFound = errors.New("no chat with this ID")
 
-type ChatsRepoInMemory struct {
+type RepoInMemory struct {
 	chats []*chat.Chat
 }
 
-func NewChatsRepoInMemory() *ChatsRepoInMemory {
-	return &ChatsRepoInMemory{}
+func NewRepoInMemory() *RepoInMemory {
+	return &RepoInMemory{}
 }
 
-func (c *ChatsRepoInMemory) GetAll() ([]*chat.Chat, error) {
+func (c *RepoInMemory) GetAll() ([]*chat.Chat, error) {
 	return c.chats, nil
 }
 
-func (c *ChatsRepoInMemory) Add(ch *chat.Chat) error {
+func (c *RepoInMemory) Add(ch *chat.Chat) error {
 	c.chats = append(c.chats, ch)
 	return nil
 }
 
-func (c *ChatsRepoInMemory) AddBatch(mess []*chat.Chat) error {
+func (c *RepoInMemory) AddBatch(mess []*chat.Chat) error {
 	c.chats = append(c.chats, mess...)
 	return nil
 }
 
-func (c *ChatsRepoInMemory) RemoveByID(chatID uint64) error {
+func (c *RepoInMemory) RemoveByID(chatID uint64) error {
 	for n, ch := range c.chats {
 		if ch.ID == chatID {
 			if n == len(c.chats)-1 {
@@ -45,7 +45,7 @@ func (c *ChatsRepoInMemory) RemoveByID(chatID uint64) error {
 	return ErrChatNotFound
 }
 
-func (c *ChatsRepoInMemory) DescribeByID(chatID uint64) (string, error) {
+func (c *RepoInMemory) DescribeByID(chatID uint64) (string, error) {
 	for n, ch := range c.chats {
 		if ch.ID == chatID {
 			return fmt.Sprintf("order_num %d, message %+v", n, ch), nil
@@ -54,7 +54,7 @@ func (c *ChatsRepoInMemory) DescribeByID(chatID uint64) (string, error) {
 	return "", ErrChatNotFound
 }
 
-func (c *ChatsRepoInMemory) List() (string, error) {
+func (c *RepoInMemory) List() (string, error) {
 	list := make([]string, 0, len(c.chats))
 	for _, ch := range c.chats {
 		list = append(list, ch.String())

@@ -1,4 +1,4 @@
-package flusher
+package chat_flusher
 
 import (
 	"fmt"
@@ -18,27 +18,27 @@ type ChatRepo interface {
 	AddBatch(mess []*chat.Chat) error
 }
 
-//go:generate mockgen --source=./flusher.go -destination=../mocks/chat_repo/chat_repo_mock.go -package=chat_repo
-
-type FlusherChats struct {
-	chunkSize int
-	chatRepo  ChatRepo
-}
+//go:generate mockgen --source=./flusher.go -destination=../mocks/chat_repo/repo_mock.go -package=chat_repo
 
 type Deps struct {
 	ChunkSize      int
 	ChatRepository ChatRepo
 }
 
-func NewFlusherMessagesToChat(deps Deps) *FlusherChats {
-	return &FlusherChats{
+type ChatFlusher struct {
+	chunkSize int
+	chatRepo  ChatRepo
+}
+
+func NewChatFlusher(deps Deps) *ChatFlusher {
+	return &ChatFlusher{
 		chunkSize: deps.ChunkSize,
 		chatRepo:  deps.ChatRepository,
 	}
 }
 
-func (f *FlusherChats) Flush(messages []*chat.Chat) error {
-	chunks := utils.SplitMessagesListToChunks(f.chunkSize, messages...)
+func (f *ChatFlusher) Flush(chats []*chat.Chat) error {
+	chunks := utils.SplitMessagesListToChunks(f.chunkSize, chats...)
 	fmt.Printf("num of chunks: %d\n", len(chunks))
 	for _, chunk := range chunks {
 		fmt.Printf("msg: %v\n", chunk)

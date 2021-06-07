@@ -1,4 +1,4 @@
-package flusher_test
+package chat_flusher_test
 
 import (
 	"testing"

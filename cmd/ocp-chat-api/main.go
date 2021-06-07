@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ozoncp/ocp-chat-api/internal/flusher"
+	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
 
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_repo"
@@ -24,7 +24,7 @@ func main() {
 	}
 }
 
-//go:generate mockgen --source=./main.go -destination=../../internal/mocks/flusher/flusher_mock.go -package=flusher
+//go:generate mockgen --source=./main.go -destination=../../internal/mocks/chat_flusher/flusher_mock.go -package=chat_flusher
 
 func Run() error {
 	defaultLogger.Info().Msg("Hi, Victor Akhlynin will write this project")
@@ -42,7 +42,7 @@ func Run() error {
 		}()
 	}
 
-	chatRepo := chat_repo.NewChatsRepoInMemory()
+	chatRepo := chat_repo.NewRepoInMemory()
 
 	chatDeps1 := &chat.Deps{
 		Id:          1,
@@ -67,14 +67,14 @@ func Run() error {
 
 	chatList := []*chat.Chat{c1, c2, c3}
 
-	flusherDeps := flusher.Deps{
+	flusherDeps := chat_flusher.Deps{
 		ChunkSize:      1,
 		ChatRepository: chatRepo,
 	}
 
 	//nolint:gosimple // not finished application, ok
 	var myFlusher Flusher
-	myFlusher = flusher.NewFlusherMessagesToChat(flusherDeps)
+	myFlusher = chat_flusher.NewChatFlusher(flusherDeps)
 	if err := myFlusher.Flush(chatList); err != nil {
 		return errors.Wrap(err, "flush chats to chat list")
 	}

@@ -1,4 +1,4 @@
-package flusher_test
+package chat_flusher_test
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
-	"github.com/ozoncp/ocp-chat-api/internal/flusher"
+	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
 )
 
 var _ = Describe("Flusher", func() {
@@ -74,14 +74,14 @@ var _ = Describe("Flusher", func() {
 		It("flush 4 messages, chunksize 2", func() {
 			messageList := m
 
-			flusherDeps := flusher.Deps{
+			flusherDeps := chat_flusher.Deps{
 				ChunkSize:      2,
 				ChatRepository: mockMessageRepo,
 			}
 
 			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(2)
 
-			myFlusher := flusher.NewFlusherMessagesToChat(flusherDeps)
+			myFlusher := chat_flusher.NewChatFlusher(flusherDeps)
 			err := myFlusher.Flush(messageList)
 			gomega.Expect(err).To(gomega.BeNil())
 			fmt.Printf("%+v finished", myFlusher)
@@ -90,14 +90,14 @@ var _ = Describe("Flusher", func() {
 		It("flush 4 messages, chunksize 3", func() {
 			messageList := m
 
-			flusherDeps := flusher.Deps{
+			flusherDeps := chat_flusher.Deps{
 				ChunkSize:      3,
 				ChatRepository: mockMessageRepo,
 			}
 
 			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(2)
 
-			myFlusher := flusher.NewFlusherMessagesToChat(flusherDeps)
+			myFlusher := chat_flusher.NewChatFlusher(flusherDeps)
 			err := myFlusher.Flush(messageList)
 			gomega.Expect(err).To(gomega.BeNil())
 			fmt.Printf("%+v finished", myFlusher)
@@ -106,14 +106,14 @@ var _ = Describe("Flusher", func() {
 		It("flush 4 messages, chunksize 1", func() {
 			messageList := m
 
-			flusherDeps := flusher.Deps{
+			flusherDeps := chat_flusher.Deps{
 				ChunkSize:      1,
 				ChatRepository: mockMessageRepo,
 			}
 
 			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(4)
 
-			myFlusher := flusher.NewFlusherMessagesToChat(flusherDeps)
+			myFlusher := chat_flusher.NewChatFlusher(flusherDeps)
 			err := myFlusher.Flush(messageList)
 			gomega.Expect(err).To(gomega.BeNil())
 			fmt.Printf("%+v finished", myFlusher)
