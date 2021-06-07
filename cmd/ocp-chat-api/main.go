@@ -3,13 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/ozoncp/ocp-chat-api/internal/flusher"
-	"github.com/ozoncp/ocp-chat-api/internal/message"
 
-	chat2 "github.com/ozoncp/ocp-chat-api/internal/chat"
-	"github.com/ozoncp/ocp-chat-api/internal/message_repo"
+	"github.com/ozoncp/ocp-chat-api/internal/chat"
+	"github.com/ozoncp/ocp-chat-api/internal/chat_repo"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
@@ -17,7 +15,7 @@ import (
 var defaultLogger = log.Logger.With().Timestamp().Logger()
 
 type Flusher interface {
-	Flush(messages []*message.Message)
+	Flush(chats []*chat.Chat)
 }
 
 func main() {
@@ -31,7 +29,7 @@ func main() {
 func Run() error {
 	defaultLogger.Info().Msg("Hi, Victor Akhlynin will write this project")
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 5; i++ {
 		f, err := os.Open("go.mod")
 		if err != nil {
 			return errors.Wrap(err, "open file")
@@ -44,34 +42,34 @@ func Run() error {
 		}()
 	}
 
-	messageRepo := message_repo.NewMessageRepoInMemory()
+	chatRepo := chat_repo.NewChatsRepoInMemory()
 
-	chatDeps := &chat2.Deps{
+	chatDeps1 := &chat.Deps{
 		Id:          1,
-		ClassroomId: 1,
-		Link:        "http://chatmychatwhereisit.com",
-		Messages:    messageRepo,
+		ClassroomId: 11,
+		Link:        "http://chat1.com",
 	}
+	c1 := chat.New(chatDeps1)
 
-	chat := chat2.New(chatDeps)
-
-	fmt.Printf("%+v it's chat\n", chat)
-
-	m1 := message.Message{
-		Timestamp: time.Time{},
-		ID:        "asdfsdf",
+	chatDeps2 := &chat.Deps{
+		Id:          2,
+		ClassroomId: 22,
+		Link:        "http://chat2.com",
 	}
+	c2 := chat.New(chatDeps2)
 
-	m2 := message.Message{
-		Timestamp: time.Time{},
-		ID:        "r2r2fda",
+	chatDep3 := &chat.Deps{
+		Id:          3,
+		ClassroomId: 33,
+		Link:        "http://chat3.com",
 	}
+	c3 := chat.New(chatDep3)
 
-	messageList := []*message.Message{&m1, &m2}
+	messageList := []*chat.Chat{c1, c2, c3}
 
 	flusherDeps := flusher.Deps{
-		ChunkSize:         1,
-		MessageRepository: messageRepo,
+		ChunkSize:      1,
+		ChatRepository: chatRepo,
 	}
 
 	//nolint:gosimple // not finished application, ok

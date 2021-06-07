@@ -2,43 +2,57 @@ package flusher_test
 
 import (
 	"fmt"
-	"time"
+
+	"github.com/ozoncp/ocp-chat-api/internal/chat"
+
+	"github.com/ozoncp/ocp-chat-api/internal/mocks/chat_repo"
 
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
 	"github.com/ozoncp/ocp-chat-api/internal/flusher"
-	"github.com/ozoncp/ocp-chat-api/internal/message"
-	"github.com/ozoncp/ocp-chat-api/internal/mocks/message_repo"
 )
 
 var _ = Describe("Flusher", func() {
 	var (
 		ctrl            *gomock.Controller
-		mockMessageRepo *message_repo.MockMessageRepo
-		m               []*message.Message
+		mockMessageRepo *chat_repo.MockChatRepo
+		m               []*chat.Chat
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 
-		mockMessageRepo = message_repo.NewMockMessageRepo(ctrl)
+		mockMessageRepo = chat_repo.NewMockChatRepo(ctrl)
 
-		m = append(m, &message.Message{
-			Timestamp: time.Time{},
-			ID:        "00",
-		})
-		m = append(m, &message.Message{
-			Timestamp: time.Time{},
-			ID:        "11",
-		})
-		m = append(m, &message.Message{
-			Timestamp: time.Time{},
-			ID:        "22",
-		})
-		m = append(m, &message.Message{
-			Timestamp: time.Time{},
-			ID:        "33",
-		})
+		chatDeps1 := &chat.Deps{
+			Id:          1,
+			ClassroomId: 11,
+			Link:        "http://chat1.com",
+		}
+		c1 := chat.New(chatDeps1)
+
+		chatDeps2 := &chat.Deps{
+			Id:          2,
+			ClassroomId: 22,
+			Link:        "http://chat2.com",
+		}
+		c2 := chat.New(chatDeps2)
+
+		chatDep3 := &chat.Deps{
+			Id:          3,
+			ClassroomId: 33,
+			Link:        "http://chat3.com",
+		}
+		c3 := chat.New(chatDep3)
+
+		chatDep4 := &chat.Deps{
+			Id:          4,
+			ClassroomId: 44,
+			Link:        "http://chat4.com",
+		}
+		c4 := chat.New(chatDep4)
+
+		m = append(m, c1, c2, c3, c4)
 	})
 
 	JustBeforeEach(func() {
@@ -46,7 +60,7 @@ var _ = Describe("Flusher", func() {
 	})
 
 	AfterEach(func() {
-		m = []*message.Message{}
+		m = []*chat.Chat{}
 	})
 
 	Context("Flusher flush", func() {
@@ -59,11 +73,11 @@ var _ = Describe("Flusher", func() {
 			messageList := m
 
 			flusherDeps := flusher.Deps{
-				ChunkSize:         2,
-				MessageRepository: mockMessageRepo,
+				ChunkSize:      2,
+				ChatRepository: mockMessageRepo,
 			}
 
-			mockMessageRepo.EXPECT().AddMessagesBatch(gomock.Any()).Times(2)
+			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(2)
 
 			myFlusher := flusher.NewFlusherMessagesToChat(flusherDeps)
 			myFlusher.Flush(messageList)
@@ -74,11 +88,11 @@ var _ = Describe("Flusher", func() {
 			messageList := m
 
 			flusherDeps := flusher.Deps{
-				ChunkSize:         3,
-				MessageRepository: mockMessageRepo,
+				ChunkSize:      3,
+				ChatRepository: mockMessageRepo,
 			}
 
-			mockMessageRepo.EXPECT().AddMessagesBatch(gomock.Any()).Times(2)
+			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(2)
 
 			myFlusher := flusher.NewFlusherMessagesToChat(flusherDeps)
 			myFlusher.Flush(messageList)
@@ -89,11 +103,11 @@ var _ = Describe("Flusher", func() {
 			messageList := m
 
 			flusherDeps := flusher.Deps{
-				ChunkSize:         1,
-				MessageRepository: mockMessageRepo,
+				ChunkSize:      1,
+				ChatRepository: mockMessageRepo,
 			}
 
-			mockMessageRepo.EXPECT().AddMessagesBatch(gomock.Any()).Times(4)
+			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(4)
 
 			myFlusher := flusher.NewFlusherMessagesToChat(flusherDeps)
 			myFlusher.Flush(messageList)

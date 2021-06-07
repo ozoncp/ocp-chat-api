@@ -1,4 +1,4 @@
-package message_repo_test
+package chat_repo_test
 
 import (
 	"testing"
