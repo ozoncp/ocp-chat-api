@@ -42,43 +42,26 @@ func Run() error {
 		}()
 	}
 
-	chatRepo := chat_repo.NewRepoInMemory()
+	// our future persistent DB
+	chatStorage := chat_repo.NewRepoInMemory()
 
-	chatDeps1 := &chat.Deps{
-		Id:          1,
-		ClassroomId: 11,
-		Link:        "http://chat1.com",
-	}
-	c1 := chat.New(chatDeps1)
-
-	chatDeps2 := &chat.Deps{
-		Id:          2,
-		ClassroomId: 22,
-		Link:        "http://chat2.com",
-	}
-	c2 := chat.New(chatDeps2)
-
-	chatDep3 := &chat.Deps{
-		Id:          3,
-		ClassroomId: 33,
-		Link:        "http://chat3.com",
-	}
-	c3 := chat.New(chatDep3)
-
-	chatList := []*chat.Chat{c1, c2, c3}
-
-	flusherDeps := chat_flusher.Deps{
+	storageFlusherDeps := chat_flusher.Deps{
 		ChunkSize:      1,
-		ChatRepository: chatRepo,
+		ChatRepository: chatStorage,
 	}
 
-	//nolint:gosimple // not finished application, ok
-	var myFlusher Flusher
-	myFlusher = chat_flusher.NewChatFlusher(flusherDeps)
-	if err := myFlusher.Flush(chatList); err != nil {
-		return errors.Wrap(err, "flush chats to chat list")
+	// our i/o channel with chat objects
+	chatQueue := chat_repo.NewRepoInMemory()
+
+	chatQueueDeps := chat_flusher.Deps{
+		ChunkSize:      1,
+		ChatRepository: chatQueue,
 	}
-	fmt.Printf("%+v finished", myFlusher)
+
+	chatStorageFlusher := chat_flusher.NewChatFlusher(storageFlusherDeps)
+	chatQueueFlusher := chat_flusher.NewChatFlusher(chatQueueDeps)
+
+	fmt.Printf("%+v, %+v", chatStorageFlusher, chatQueueFlusher)
 
 	return nil
 }
