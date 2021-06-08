@@ -1,6 +1,8 @@
 package chat_service
 
 import (
+	"context"
+
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
 )
@@ -38,6 +40,9 @@ type Service struct {
 	queueFlusher Flusher
 }
 
+func (s *Service) mustEmbedUnimplementedChatApiServer() {
+}
+
 func New(deps *Deps) *Service {
 	return &Service{
 		storageRepo:    deps.StorageRepo,
@@ -45,4 +50,11 @@ func New(deps *Deps) *Service {
 		queueRepo:      deps.QueueRepo,
 		queueFlusher:   deps.QueueFlusher,
 	}
+}
+
+func (s *Service) CreateChat(ctx context.Context, req *CreateRequest) (*CreateResponse, error) {
+	return &CreateResponse{
+		Code:    200,
+		Message: "ok norm response",
+	}, nil
 }

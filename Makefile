@@ -1,5 +1,5 @@
 build:
-	go build -o bin/ocp-chat-api cmd/ocp-chat-api/main.go
+	go build -o bin/ocp-chat-api ./cmd/ocp-chat-api
 
 run: build
 	@./bin/ocp-chat-api
@@ -17,4 +17,4 @@ generate-mocks:
 	go generate ./...
 
 grpc-proto:
-	protoc --proto_path=api/ocp-chat-api --go_out=vendor.protogen --go_opt=paths=import --go-grpc_out=vendor.protogen --go_opt=paths=import ocp-chat-api.proto
+	protoc --proto_path=pkg/chat_service --go_out=pkg/chat_service  --go_opt=paths=source_relative --go-grpc_out=pkg/chat_service --go_opt=paths=source_relative ocp-chat-api.proto

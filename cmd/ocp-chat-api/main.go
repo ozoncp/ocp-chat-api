@@ -2,14 +2,18 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os"
 
-	"github.com/ozoncp/ocp-chat-api/internal/chat_service"
+	"github.com/ozoncp/ocp-chat-api/pkg/chat_service"
 
+	"github.com/kelseyhightower/envconfig"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_repo"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/grpclog"
 )
 
 var defaultLogger = log.Logger.With().Timestamp().Logger()
@@ -23,6 +27,7 @@ func main() {
 func Run() error {
 	defaultLogger.Info().Msg("Hi, Victor Akhlynin will write this project")
 
+	defaultLogger.Info().Msgf("started service %v", os.Args[0])
 	for i := 0; i < 5; i++ {
 		f, err := os.Open("go.mod")
 		if err != nil {
@@ -34,6 +39,11 @@ func Run() error {
 				defaultLogger.Error().Err(err).Msg("close file bad")
 			}
 		}()
+	}
+
+	cfg := NewDefaultConfig()
+	if err := envconfig.Process("", cfg); err != nil {
+		return errors.Wrap(err, "read config from env")
 	}
 
 	// our future persistent DB
@@ -62,6 +72,20 @@ func Run() error {
 
 	service := chat_service.New(serviceDeps)
 	fmt.Printf("%+v", service)
+
+	// api
+	listener, err := net.Listen(defaultTransportProtocol, cfg.GRPCAddr)
+	if err != nil {
+		grpclog.Fatalf("failed to listen: %v", err)
+	}
+
+	opts := []grpc.ServerOption{}
+	grpcServer := grpc.NewServer(opts...)
+
+	chat_service.RegisterChatApiServer(grpcServer, service)
+	if err := grpcServer.Serve(listener); err != nil {
+		return errors.Wrap(err, "grpc server serve")
+	}
 
 	return nil
 }

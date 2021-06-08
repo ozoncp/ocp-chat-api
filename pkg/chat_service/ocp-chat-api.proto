@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/ozoncp/ocp-chat-api/pkg/ocp-chat-api;chat_api";
+option go_package = "./;chat_service";
 
 package chat_api;
 
