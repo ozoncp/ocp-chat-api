@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "github.com/ozoncp/ocp-chat-api/pkg/ocp-chat-api;chat_api";
+
+package chat_api;
+
+service ChatApi {
+    rpc CreateChat (CreateRequest) returns (CreateResponse);
+}
+
+message CreateRequest {
+    uint64 id = 1;
+    uint64 classroom_id = 2;
+    string link = 3;
+}
+
+message CreateResponse {
+    uint64 code = 1;
+    string message = 2;
+}

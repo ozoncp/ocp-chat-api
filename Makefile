@@ -15,3 +15,6 @@ lint:
 
 generate-mocks:
 	go generate ./...
+
+grpc-proto:
+	protoc --proto_path=api/ocp-chat-api --go_out=vendor.protogen --go_opt=paths=import --go-grpc_out=vendor.protogen --go_opt=paths=import ocp-chat-api.proto
