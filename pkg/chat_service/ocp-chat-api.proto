@@ -5,16 +5,54 @@ option go_package = "./;chat_service";
 package chat_api;
 
 service ChatApi {
-    rpc CreateChat (CreateRequest) returns (CreateResponse);
+    rpc CreateChat (CreateChatRequest) returns (CreateChatResponse);
+    rpc DescribeChat (DescribeChatRequest) returns (DescribeChatResponse);
+    rpc ListChats (ListChatsRequest) returns (ListChatsResponse);
+    rpc RemoveChat (RemoveChatRequest) returns (RemoveChatResponse);
 }
 
-message CreateRequest {
+message CreateChatRequest {
     uint64 id = 1;
     uint64 classroom_id = 2;
     string link = 3;
 }
 
-message CreateResponse {
+message CreateChatResponse {
+    uint64 code = 1;
+    string message = 2;
+}
+
+
+message DescribeChatRequest {
+    uint64 id = 1;
+}
+
+message DescribeChatResponse {
+    uint64 id = 1;
+    uint64 classroom_id = 2;
+    string link = 3;
+}
+
+message ListChatsRequest {
+    uint64 id = 1;
+}
+
+message ListChatOne {
+    uint64 id = 1;
+    uint64 classroom_id = 2;
+    string link = 3;
+}
+
+message ListChatsResponse {
+    repeated ListChatOne packet = 1;
+}
+
+
+message RemoveChatRequest {
+    uint64 id = 1;
+}
+
+message RemoveChatResponse {
     uint64 code = 1;
     string message = 2;
 }

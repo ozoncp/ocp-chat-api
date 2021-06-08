@@ -19,7 +19,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChatApiClient interface {
-	CreateChat(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
+	CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*CreateChatResponse, error)
+	DescribeChat(ctx context.Context, in *DescribeChatRequest, opts ...grpc.CallOption) (*DescribeChatResponse, error)
+	ListChats(ctx context.Context, in *ListChatsRequest, opts ...grpc.CallOption) (*ListChatsResponse, error)
+	RemoveChat(ctx context.Context, in *RemoveChatRequest, opts ...grpc.CallOption) (*RemoveChatResponse, error)
 }
 
 type chatApiClient struct {
@@ -30,9 +33,36 @@ func NewChatApiClient(cc grpc.ClientConnInterface) ChatApiClient {
 	return &chatApiClient{cc}
 }
 
-func (c *chatApiClient) CreateChat(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error) {
-	out := new(CreateResponse)
+func (c *chatApiClient) CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*CreateChatResponse, error) {
+	out := new(CreateChatResponse)
 	err := c.cc.Invoke(ctx, "/chat_api.ChatApi/CreateChat", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatApiClient) DescribeChat(ctx context.Context, in *DescribeChatRequest, opts ...grpc.CallOption) (*DescribeChatResponse, error) {
+	out := new(DescribeChatResponse)
+	err := c.cc.Invoke(ctx, "/chat_api.ChatApi/DescribeChat", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatApiClient) ListChats(ctx context.Context, in *ListChatsRequest, opts ...grpc.CallOption) (*ListChatsResponse, error) {
+	out := new(ListChatsResponse)
+	err := c.cc.Invoke(ctx, "/chat_api.ChatApi/ListChats", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatApiClient) RemoveChat(ctx context.Context, in *RemoveChatRequest, opts ...grpc.CallOption) (*RemoveChatResponse, error) {
+	out := new(RemoveChatResponse)
+	err := c.cc.Invoke(ctx, "/chat_api.ChatApi/RemoveChat", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -43,15 +73,30 @@ func (c *chatApiClient) CreateChat(ctx context.Context, in *CreateRequest, opts 
 // All implementations must embed UnimplementedChatApiServer
 // for forward compatibility
 type ChatApiServer interface {
-	CreateChat(context.Context, *CreateRequest) (*CreateResponse, error)
+	CreateChat(context.Context, *CreateChatRequest) (*CreateChatResponse, error)
+	DescribeChat(context.Context, *DescribeChatRequest) (*DescribeChatResponse, error)
+	ListChats(context.Context, *ListChatsRequest) (*ListChatsResponse, error)
+	RemoveChat(context.Context, *RemoveChatRequest) (*RemoveChatResponse, error)
 	mustEmbedUnimplementedChatApiServer()
 }
 
 // UnimplementedChatApiServer must be embedded to have forward compatible implementations.
 type UnimplementedChatApiServer struct{}
 
-func (UnimplementedChatApiServer) CreateChat(context.Context, *CreateRequest) (*CreateResponse, error) {
+func (UnimplementedChatApiServer) CreateChat(context.Context, *CreateChatRequest) (*CreateChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateChat not implemented")
+}
+
+func (UnimplementedChatApiServer) DescribeChat(context.Context, *DescribeChatRequest) (*DescribeChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DescribeChat not implemented")
+}
+
+func (UnimplementedChatApiServer) ListChats(context.Context, *ListChatsRequest) (*ListChatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListChats not implemented")
+}
+
+func (UnimplementedChatApiServer) RemoveChat(context.Context, *RemoveChatRequest) (*RemoveChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveChat not implemented")
 }
 func (UnimplementedChatApiServer) mustEmbedUnimplementedChatApiServer() {}
 
@@ -67,7 +112,7 @@ func RegisterChatApiServer(s grpc.ServiceRegistrar, srv ChatApiServer) {
 }
 
 func _ChatApi_CreateChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateRequest)
+	in := new(CreateChatRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -79,7 +124,61 @@ func _ChatApi_CreateChat_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: "/chat_api.ChatApi/CreateChat",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChatApiServer).CreateChat(ctx, req.(*CreateRequest))
+		return srv.(ChatApiServer).CreateChat(ctx, req.(*CreateChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChatApi_DescribeChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DescribeChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatApiServer).DescribeChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chat_api.ChatApi/DescribeChat",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatApiServer).DescribeChat(ctx, req.(*DescribeChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChatApi_ListChats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListChatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatApiServer).ListChats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chat_api.ChatApi/ListChats",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatApiServer).ListChats(ctx, req.(*ListChatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChatApi_RemoveChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatApiServer).RemoveChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chat_api.ChatApi/RemoveChat",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatApiServer).RemoveChat(ctx, req.(*RemoveChatRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -94,6 +193,18 @@ var ChatApi_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateChat",
 			Handler:    _ChatApi_CreateChat_Handler,
+		},
+		{
+			MethodName: "DescribeChat",
+			Handler:    _ChatApi_DescribeChat_Handler,
+		},
+		{
+			MethodName: "ListChats",
+			Handler:    _ChatApi_ListChats_Handler,
+		},
+		{
+			MethodName: "RemoveChat",
+			Handler:    _ChatApi_RemoveChat_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
