@@ -1,11 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"net"
 	"os"
 
-	"github.com/ozoncp/ocp-chat-api/pkg/chat_service"
+	"github.com/ozoncp/ocp-chat-api/internal/chat_service"
+
+	"github.com/ozoncp/ocp-chat-api/pkg/chat_api"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
@@ -70,9 +71,8 @@ func Run() error {
 		QueueFlusher:   chatQueueFlusher,
 	}
 
-	service := chat_service.New(serviceDeps)
-	fmt.Printf("%+v", service)
-
+	chatService := chat_service.New(serviceDeps)
+	chatAPI := chat_api.New(chatService)
 	// api
 	listener, err := net.Listen(defaultTransportProtocol, cfg.GRPCAddr)
 	if err != nil {
@@ -82,7 +82,7 @@ func Run() error {
 	opts := []grpc.ServerOption{}
 	grpcServer := grpc.NewServer(opts...)
 
-	chat_service.RegisterChatApiServer(grpcServer, service)
+	chat_api.RegisterChatApiServer(grpcServer, chatAPI)
 	if err := grpcServer.Serve(listener); err != nil {
 		return errors.Wrap(err, "grpc server serve")
 	}
