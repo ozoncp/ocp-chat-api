@@ -129,7 +129,7 @@ var ErrOSSignalInterrupt = errors.New("got interrupt signal from OS")
 
 func WaitInterruptFromOS(ctx context.Context) error {
 	logger := *zerolog.Ctx(ctx)
-	termChan := make(chan os.Signal)
+	termChan := make(chan os.Signal, 1)
 	signals := DefaultOSSignals()
 	signal.Notify(termChan, signals...)
 	defer signal.Stop(termChan)
