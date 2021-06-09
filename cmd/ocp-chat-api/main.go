@@ -112,8 +112,6 @@ func Run() error {
 		return nil
 	})
 
-	logger.Info().Msg("Service stopped")
-
 	if err := runner.Wait(); err != nil {
 		switch {
 		case InterruptedFromOS(err):
@@ -122,6 +120,9 @@ func Run() error {
 			return errors.Wrap(err, "runner finished")
 		}
 	}
+
+	logger.Info().Msg("Service stopped")
+
 	return nil
 }
 
