@@ -18,7 +18,7 @@ var _ = Describe("Flusher", func() {
 	var (
 		ctrl            *gomock.Controller
 		mockMessageRepo *chat_repo.MockFlushableChatRepo
-		m               []*chat.Chat
+		chats2Save      []*chat.Chat
 	)
 
 	BeforeEach(func() {
@@ -54,7 +54,7 @@ var _ = Describe("Flusher", func() {
 		}
 		c4 := chat.New(chatDep4)
 
-		m = append(m, c1, c2, c3, c4)
+		chats2Save = append(chats2Save, c1, c2, c3, c4)
 	})
 
 	JustBeforeEach(func() {
@@ -62,7 +62,7 @@ var _ = Describe("Flusher", func() {
 	})
 
 	AfterEach(func() {
-		m = []*chat.Chat{}
+		chats2Save = []*chat.Chat{}
 	})
 
 	Context("Flusher flush", func() {
@@ -72,46 +72,37 @@ var _ = Describe("Flusher", func() {
 		})
 
 		It("flush 4 messages, chunksize 2", func() {
-			messageList := m
+			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(2)
 
 			flusherDeps := chat_flusher.Deps{
 				ChunkSize: 2,
 			}
-
-			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(2)
-
 			myFlusher := chat_flusher.NewChatFlusher(flusherDeps)
-			err := myFlusher.Flush(mockMessageRepo, messageList)
+			err := myFlusher.Flush(mockMessageRepo, chats2Save)
 			gomega.Expect(err).To(gomega.BeNil())
 			fmt.Printf("%+v finished", myFlusher)
 		})
 
 		It("flush 4 messages, chunksize 3", func() {
-			messageList := m
+			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(2)
 
 			flusherDeps := chat_flusher.Deps{
 				ChunkSize: 3,
 			}
-
-			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(2)
-
 			myFlusher := chat_flusher.NewChatFlusher(flusherDeps)
-			err := myFlusher.Flush(mockMessageRepo, messageList)
+			err := myFlusher.Flush(mockMessageRepo, chats2Save)
 			gomega.Expect(err).To(gomega.BeNil())
 			fmt.Printf("%+v finished", myFlusher)
 		})
 
 		It("flush 4 messages, chunksize 1", func() {
-			messageList := m
+			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(4)
 
 			flusherDeps := chat_flusher.Deps{
 				ChunkSize: 1,
 			}
-
-			mockMessageRepo.EXPECT().AddBatch(gomock.Any()).Times(4)
-
 			myFlusher := chat_flusher.NewChatFlusher(flusherDeps)
-			err := myFlusher.Flush(mockMessageRepo, messageList)
+			err := myFlusher.Flush(mockMessageRepo, chats2Save)
 			gomega.Expect(err).To(gomega.BeNil())
 			fmt.Printf("%+v finished", myFlusher)
 		})
