@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/rs/zerolog"
 
 	"github.com/ozoncp/ocp-chat-api/internal/chat_service"
 
@@ -13,6 +18,7 @@ import (
 	"github.com/ozoncp/ocp-chat-api/internal/chat_repo"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
 )
@@ -81,11 +87,70 @@ func Run() error {
 
 	opts := []grpc.ServerOption{}
 	grpcServer := grpc.NewServer(opts...)
-
 	chat_api.RegisterChatApiServer(grpcServer, chatAPI)
-	if err := grpcServer.Serve(listener); err != nil {
-		return errors.Wrap(err, "grpc server serve")
-	}
 
+	ctx := context.Background()
+	runner, ctx := errgroup.WithContext(ctx)
+	logger := defaultLogger
+
+	runner.Go(func() error {
+		return WaitInterruptFromOS(ctx)
+	})
+
+	runner.Go(func() error {
+		logger.Info().Msg("Start serving grpc api")
+		if err := grpcServer.Serve(listener); err != nil {
+			return errors.Wrap(err, "grpc server serve")
+		}
+		return nil
+	})
+
+	runner.Go(func() error {
+		<-ctx.Done()
+		logger.Info().Msg("context done; launching graceful stop of grpc server")
+		grpcServer.GracefulStop()
+		return nil
+	})
+
+	logger.Info().Msg("Service stopped")
+
+	if err := runner.Wait(); err != nil {
+		switch {
+		case InterruptedFromOS(err):
+			defaultLogger.Info().Msg("application stopped by exit signal")
+		default:
+			return errors.Wrap(err, "runner finished")
+		}
+	}
 	return nil
+}
+
+var ErrOSSignalInterrupt = errors.New("got interrupt signal from OS")
+
+func WaitInterruptFromOS(ctx context.Context) error {
+	logger := *zerolog.Ctx(ctx)
+	termChan := make(chan os.Signal)
+	signals := DefaultOSSignals()
+	signal.Notify(termChan, signals...)
+	defer signal.Stop(termChan)
+
+	select {
+	case sig := <-termChan:
+		logger.Info().Msgf("got signal %v, try graceful shutdown...", sig)
+		return ErrOSSignalInterrupt
+	case <-ctx.Done():
+		return errors.Wrap(ctx.Err(), "outside interrupt signalwaiting loop")
+	}
+}
+
+func DefaultOSSignals() []os.Signal {
+	return []os.Signal{
+		syscall.SIGQUIT,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	}
+}
+
+func InterruptedFromOS(err error) bool {
+	return errors.Is(err, ErrOSSignalInterrupt)
 }

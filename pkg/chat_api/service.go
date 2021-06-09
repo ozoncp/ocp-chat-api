@@ -2,29 +2,35 @@ package chat_api
 
 import (
 	"context"
+
+	"github.com/pkg/errors"
 )
 
-type MyService interface {
-	CreateChat(ctx context.Context, id, classroom int64, link string) error
-	DescribeChat(ctx context.Context, id int64) (string, error)
-	RemoveChat(ctx context.Context, id int64) error
+type Service interface {
+	CreateChat(ctx context.Context, id, classroom uint64, link string) error
+	DescribeChat(ctx context.Context, id uint64) (string, error)
+	RemoveChat(ctx context.Context, id uint64) error
 	ListChats(ctx context.Context) ([]string, error)
 }
 
 type ChatAPI struct {
-	service MyService
+	service Service
 }
 
-func New(service MyService) *ChatAPI {
+func New(service Service) *ChatAPI {
 	return &ChatAPI{
 		service: service,
 	}
 }
 
 func (s *ChatAPI) CreateChat(ctx context.Context, req *CreateChatRequest) (*CreateChatResponse, error) {
+	if err := s.service.CreateChat(ctx, req.Id, req.ClassroomId, req.Link); err != nil {
+		return nil, errors.Wrap(err, "create chat")
+	}
+
 	return &CreateChatResponse{
 		Code:    200,
-		Message: "ok norm response",
+		Message: "ok",
 	}, nil
 }
 

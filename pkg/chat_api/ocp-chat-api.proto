@@ -22,7 +22,6 @@ message CreateChatResponse {
     string message = 2;
 }
 
-
 message DescribeChatRequest {
     uint64 id = 1;
 }
@@ -33,9 +32,7 @@ message DescribeChatResponse {
     string link = 3;
 }
 
-message ListChatsRequest {
-    uint64 id = 1;
-}
+message ListChatsRequest {}
 
 message ListChatOne {
     uint64 id = 1;
@@ -46,7 +43,6 @@ message ListChatOne {
 message ListChatsResponse {
     repeated ListChatOne packet = 1;
 }
-
 
 message RemoveChatRequest {
     uint64 id = 1;

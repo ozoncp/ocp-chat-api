@@ -49,15 +49,15 @@ func New(deps *Deps) *Service {
 	}
 }
 
-func (s *Service) CreateChat(ctx context.Context, id, classroom int64, link string) error {
+func (s *Service) CreateChat(ctx context.Context, id, classroom uint64, link string) error {
 	return nil
 }
 
-func (s *Service) DescribeChat(ctx context.Context, id int64) (string, error) {
+func (s *Service) DescribeChat(ctx context.Context, id uint64) (string, error) {
 	return "", nil
 }
 
-func (s *Service) RemoveChat(ctx context.Context, id int64) error {
+func (s *Service) RemoveChat(ctx context.Context, id uint64) error {
 	return nil
 }
 
