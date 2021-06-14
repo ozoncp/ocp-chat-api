@@ -10,7 +10,7 @@ import (
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 )
 
-//go:generate mockgen --source=./flusher.go -destination=../mocks/chat_flusher/flushable_repo_mock.go -package=chat_flusher
+//go:generate mockgen --source=./flusher.go -destination=../mocks/chat_repo/flushable_repo_mock.go -package=chat_repo
 
 type FlushableChatRepo interface {
 	AddBatch(ctx context.Context, chats []*chat.Chat) error

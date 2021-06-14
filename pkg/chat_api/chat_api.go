@@ -2,9 +2,10 @@ package chat_api
 
 import (
 	"context"
-
 	"github.com/pkg/errors"
 )
+
+//go:generate mockgen --source=./chat_api.go -destination=../mocks/chat_api/service_mock.go -package=chat_api
 
 type Service interface {
 	CreateChat(ctx context.Context, classroom uint64, link string) error

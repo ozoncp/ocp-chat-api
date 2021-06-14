@@ -3,7 +3,7 @@ package chat_flusher_test
 import (
 	"context"
 	"fmt"
-	cf "github.com/ozoncp/ocp-chat-api/internal/mocks/chat_flusher"
+	"github.com/ozoncp/ocp-chat-api/internal/mocks/chat_repo"
 
 	"github.com/onsi/gomega"
 
@@ -17,14 +17,14 @@ import (
 var _ = Describe("Flusher", func() {
 	var (
 		ctrl                  *gomock.Controller
-		mockFlushableChatRepo *cf.MockFlushableChatRepo
+		mockFlushableChatRepo *chat_repo.MockFlushableChatRepo
 		chats2Save            []*chat.Chat
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 
-		mockFlushableChatRepo = cf.NewMockFlushableChatRepo(ctrl)
+		mockFlushableChatRepo = chat_repo.NewMockFlushableChatRepo(ctrl)
 
 		chatDeps1 := &chat.Deps{
 			Id:          1,

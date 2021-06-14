@@ -19,7 +19,7 @@ const (
 	RemoveRandom
 )
 
-//go:generate mockgen --source=./saver.go -destination=../mocks/saver/flusher_mock.go -package=saver
+//go:generate mockgen --source=./saver.go -destination=../mocks/chat_flusher/flusher_mock.go -package=chat_flusher
 
 type Flusher interface {
 	Flush(ctx context.Context, repo chat_flusher.FlushableChatRepo, chats []*chat.Chat) error

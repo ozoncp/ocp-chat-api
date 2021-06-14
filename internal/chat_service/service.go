@@ -5,6 +5,8 @@ import (
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 )
 
+//go:generate mockgen --source=./service.go -destination=../mocks/chat_repo/repo_mock.go -package=chat_repo
+
 type Repo interface {
 	GetAll(ctx context.Context) ([]*chat.Chat, error)
 	Insert(ctx context.Context, classroomID uint64, link string) (*chat.Chat, error)
@@ -12,6 +14,7 @@ type Repo interface {
 	Remove(ctx context.Context, chatID uint64) error
 }
 
+//go:generate mockgen --source=./service.go -destination=../mocks/chat_saver/batch_saver_mock.go -package=chat_saver
 type Saver interface {
 	Save(ctx context.Context, ch *chat.Chat) error
 }
@@ -37,6 +40,7 @@ func New(deps *Deps) *Service {
 }
 
 func (s *Service) CreateChat(ctx context.Context, classroom uint64, link string) error {
+
 	return nil
 }
 
