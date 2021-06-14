@@ -49,7 +49,7 @@ func New(deps *Deps) *Service {
 	}
 }
 
-func (s *Service) CreateChat(ctx context.Context, id, classroom uint64, link string) error {
+func (s *Service) CreateChat(ctx context.Context, classroom uint64, link string) error {
 	return nil
 }
 
