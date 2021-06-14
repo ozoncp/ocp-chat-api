@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"github.com/ozoncp/ocp-chat-api/internal/saver"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/rs/zerolog"
 
@@ -53,28 +55,34 @@ func Run() error {
 		return errors.Wrap(err, "read config from env")
 	}
 
-	// our future persistent DB
-	chatStorage := chat_repo.NewRepoInMemory()
-
-	storageFlusherDeps := chat_flusher.Deps{
-		ChunkSize: 1,
-	}
+	// persistent storage interaction
+	chatStorage := chat_repo.NewRepoInMemory() // future postgres
 
 	// our i/o channel with chat objects
-	chatQueue := chat_repo.NewRepoInMemory()
+	chatQueue := chat_repo.NewRepoInMemory() // future Kafka
 
-	chatQueueDeps := chat_flusher.Deps{
+	// statistics module
+	statisticsRepo := chat_repo.NewRepoInMemory()
+
+	statisticsFlusherDeps := chat_flusher.Deps{
 		ChunkSize: 1,
 	}
 
-	chatStorageFlusher := chat_flusher.NewChatFlusher(storageFlusherDeps)
-	chatQueueFlusher := chat_flusher.NewChatFlusher(chatQueueDeps)
+	statisticsFlusher := chat_flusher.NewChatFlusher(statisticsFlusherDeps)
+
+	statisticSaverDeps := &saver.Deps{
+		Capacity:    1000,
+		FlusherHere: statisticsFlusher,
+		Repository:  statisticsRepo,
+		FlushPeriod: 10 * time.Second,
+		Strategy:    saver.RemoveOldest,
+	}
+	statisticsSaver := saver.New(statisticSaverDeps)
 
 	serviceDeps := &chat_service.Deps{
-		StorageRepo:    chatStorage,
-		StorageFlusher: chatStorageFlusher,
-		QueueRepo:      chatQueue,
-		QueueFlusher:   chatQueueFlusher,
+		StorageRepo:     chatStorage,
+		QueueRepo:       chatQueue,
+		StatisticsSaver: statisticsSaver,
 	}
 
 	chatService := chat_service.New(serviceDeps)

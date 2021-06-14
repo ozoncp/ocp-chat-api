@@ -1,6 +1,7 @@
 package chat_flusher
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/pkg/errors"
@@ -9,10 +10,10 @@ import (
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 )
 
-//go:generate mockgen --source=./flusher.go -destination=../mocks/chat_repo/flushable_repo_mock.go -package=chat_repo
+//go:generate mockgen --source=./flusher.go -destination=../mocks/chat_flusher/flushable_repo_mock.go -package=chat_flusher
 
 type FlushableChatRepo interface {
-	AddBatch(chats []*chat.Chat) error
+	AddBatch(ctx context.Context, chats []*chat.Chat) error
 }
 
 type Deps struct {
@@ -29,12 +30,12 @@ func NewChatFlusher(deps Deps) *ChatFlusher {
 	}
 }
 
-func (f *ChatFlusher) Flush(repo FlushableChatRepo, chats []*chat.Chat) error {
+func (f *ChatFlusher) Flush(ctx context.Context, repo FlushableChatRepo, chats []*chat.Chat) error {
 	chunks := utils.SplitMessagesListToChunks(f.chunkSize, chats...)
 	fmt.Printf("num of chunks: %d\n", len(chunks))
 	for _, chunk := range chunks {
 		fmt.Printf("msg: %v\n", chunk)
-		if err := repo.AddBatch(chunk); err != nil {
+		if err := repo.AddBatch(ctx, chunk); err != nil {
 			return errors.Wrap(err, "flush batch of chats to chat repo")
 		}
 	}

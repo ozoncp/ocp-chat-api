@@ -4,7 +4,6 @@ package chat_api
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -81,20 +80,18 @@ type ChatApiServer interface {
 }
 
 // UnimplementedChatApiServer must be embedded to have forward compatible implementations.
-type UnimplementedChatApiServer struct{}
+type UnimplementedChatApiServer struct {
+}
 
 func (UnimplementedChatApiServer) CreateChat(context.Context, *CreateChatRequest) (*CreateChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateChat not implemented")
 }
-
 func (UnimplementedChatApiServer) DescribeChat(context.Context, *DescribeChatRequest) (*DescribeChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DescribeChat not implemented")
 }
-
 func (UnimplementedChatApiServer) ListChats(context.Context, *ListChatsRequest) (*ListChatsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListChats not implemented")
 }
-
 func (UnimplementedChatApiServer) RemoveChat(context.Context, *RemoveChatRequest) (*RemoveChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveChat not implemented")
 }

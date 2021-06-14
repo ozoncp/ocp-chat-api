@@ -7,11 +7,10 @@
 package chat_api
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -528,21 +527,18 @@ func file_ocp_chat_api_proto_rawDescGZIP() []byte {
 	return file_ocp_chat_api_proto_rawDescData
 }
 
-var (
-	file_ocp_chat_api_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
-	file_ocp_chat_api_proto_goTypes  = []interface{}{
-		(*CreateChatRequest)(nil),    // 0: chat_api.CreateChatRequest
-		(*CreateChatResponse)(nil),   // 1: chat_api.CreateChatResponse
-		(*DescribeChatRequest)(nil),  // 2: chat_api.DescribeChatRequest
-		(*DescribeChatResponse)(nil), // 3: chat_api.DescribeChatResponse
-		(*ListChatsRequest)(nil),     // 4: chat_api.ListChatsRequest
-		(*ChatInstance)(nil),         // 5: chat_api.ChatInstance
-		(*ListChatsResponse)(nil),    // 6: chat_api.ListChatsResponse
-		(*RemoveChatRequest)(nil),    // 7: chat_api.RemoveChatRequest
-		(*RemoveChatResponse)(nil),   // 8: chat_api.RemoveChatResponse
-	}
-)
-
+var file_ocp_chat_api_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_ocp_chat_api_proto_goTypes = []interface{}{
+	(*CreateChatRequest)(nil),    // 0: chat_api.CreateChatRequest
+	(*CreateChatResponse)(nil),   // 1: chat_api.CreateChatResponse
+	(*DescribeChatRequest)(nil),  // 2: chat_api.DescribeChatRequest
+	(*DescribeChatResponse)(nil), // 3: chat_api.DescribeChatResponse
+	(*ListChatsRequest)(nil),     // 4: chat_api.ListChatsRequest
+	(*ChatInstance)(nil),         // 5: chat_api.ChatInstance
+	(*ListChatsResponse)(nil),    // 6: chat_api.ListChatsResponse
+	(*RemoveChatRequest)(nil),    // 7: chat_api.RemoveChatRequest
+	(*RemoveChatResponse)(nil),   // 8: chat_api.RemoveChatResponse
+}
 var file_ocp_chat_api_proto_depIdxs = []int32{
 	5, // 0: chat_api.DescribeChatResponse.chat:type_name -> chat_api.ChatInstance
 	5, // 1: chat_api.ListChatsResponse.packet:type_name -> chat_api.ChatInstance
