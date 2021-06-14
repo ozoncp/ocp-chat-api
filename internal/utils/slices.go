@@ -53,7 +53,7 @@ func ExcludeMembersOfList(list []int, removeUs []int) []int {
 	return resultList
 }
 
-func SplitMessagesListToChunks(chunkSize int, slice ...*chat.Chat) [][]*chat.Chat {
+func SplitChatsListToChunks(chunkSize int, slice ...*chat.Chat) [][]*chat.Chat {
 	length := len(slice)
 	chunkNum := length/chunkSize + 1
 
