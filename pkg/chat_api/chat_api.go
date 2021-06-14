@@ -7,7 +7,7 @@ import (
 )
 
 type Service interface {
-	CreateChat(ctx context.Context, id, classroom uint64, link string) error
+	CreateChat(ctx context.Context, classroom uint64, link string) error
 	DescribeChat(ctx context.Context, id uint64) (string, error)
 	RemoveChat(ctx context.Context, id uint64) error
 	ListChats(ctx context.Context) ([]string, error)
@@ -24,51 +24,50 @@ func New(service Service) *ChatAPI {
 }
 
 func (s *ChatAPI) CreateChat(ctx context.Context, req *CreateChatRequest) (*CreateChatResponse, error) {
-	if err := s.service.CreateChat(ctx, req.Id, req.ClassroomId, req.Link); err != nil {
+	if err := s.service.CreateChat(ctx, req.ClassroomId, req.Link); err != nil {
 		return nil, errors.Wrap(err, "create chat")
 	}
 
 	return &CreateChatResponse{
-		Code:    200,
+		Id:      2423423423,
 		Message: "ok",
 	}, nil
 }
 
 func (s *ChatAPI) DescribeChat(ctx context.Context, req *DescribeChatRequest) (*DescribeChatResponse, error) {
 	return &DescribeChatResponse{
-		Id:          222,
-		ClassroomId: 111,
-		Link:        "asdfasfsadf.com",
+		Chat: &ChatInstance{
+			Id:          222,
+			ClassroomId: 111,
+			Link:        "asdfasfsadf.com",
+		},
 	}, nil
 }
 
 func (s *ChatAPI) RemoveChat(ctx context.Context, req *RemoveChatRequest) (*RemoveChatResponse, error) {
-	return &RemoveChatResponse{
-		Code:    200,
-		Message: "delete ok",
-	}, nil
+	return &RemoveChatResponse{}, nil
 }
 
 func (s *ChatAPI) ListChats(ctx context.Context, req *ListChatsRequest) (*ListChatsResponse, error) {
-	c1 := &ListChatOne{
-		Id:          11,
+	c1 := &ChatInstance{
+		Id:          222,
 		ClassroomId: 111,
 		Link:        "asdfasfsadf.com",
 	}
 
-	c2 := &ListChatOne{
-		Id:          22,
-		ClassroomId: 222,
-		Link:        "asdfasfsadf2.com",
+	c2 := &ChatInstance{
+		Id:          222,
+		ClassroomId: 111,
+		Link:        "asdfasfsadf.com",
 	}
 
-	c3 := &ListChatOne{
-		Id:          33,
-		ClassroomId: 333,
-		Link:        "asdfasfsadf3.com",
+	c3 := &ChatInstance{
+		Id:          222,
+		ClassroomId: 111,
+		Link:        "asdfasfsadf.com",
 	}
 
-	chats := []*ListChatOne{c1, c2, c3}
+	chats := []*ChatInstance{c1, c2, c3}
 	return &ListChatsResponse{
 		Packet: chats,
 	}, nil
