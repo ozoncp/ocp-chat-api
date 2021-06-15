@@ -1,4 +1,4 @@
-package chat_api_test
+package chat_service_test
 
 import (
 	"context"
