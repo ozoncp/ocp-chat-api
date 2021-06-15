@@ -3,6 +3,7 @@ package chat_service
 import (
 	"context"
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
+	"github.com/pkg/errors"
 )
 
 //go:generate mockgen --source=./service.go -destination=../mocks/chat_repo/repo_mock.go -package=chat_repo
@@ -25,33 +26,35 @@ type Deps struct {
 	QueueRepo       Repo
 }
 
-type Service struct {
+type ChatService struct {
 	statisticsSaver Saver
 	storageRepo     Repo
 	queueRepo       Repo
 }
 
-func New(deps *Deps) *Service {
-	return &Service{
+func New(deps *Deps) *ChatService {
+	return &ChatService{
 		statisticsSaver: deps.StatisticsSaver,
 		storageRepo:     deps.StorageRepo,
 		queueRepo:       deps.QueueRepo,
 	}
 }
 
-func (s *Service) CreateChat(ctx context.Context, classroom uint64, link string) error {
-
+func (s *ChatService) CreateChat(ctx context.Context, classroom uint64, link string) error {
+	if _, err := s.storageRepo.Insert(ctx, classroom, link); err != nil {
+		return errors.Wrap(err, "insert to repo")
+	}
 	return nil
 }
 
-func (s *Service) DescribeChat(ctx context.Context, id uint64) (string, error) {
+func (s *ChatService) DescribeChat(ctx context.Context, id uint64) (string, error) {
 	return "", nil
 }
 
-func (s *Service) RemoveChat(ctx context.Context, id uint64) error {
+func (s *ChatService) RemoveChat(ctx context.Context, id uint64) error {
 	return nil
 }
 
-func (s *Service) ListChats(ctx context.Context) ([]string, error) {
+func (s *ChatService) ListChats(ctx context.Context) ([]string, error) {
 	return []string{}, nil
 }

@@ -129,7 +129,7 @@ func Run() error {
 		}
 	}
 
-	logger.Info().Msg("Service stopped")
+	logger.Info().Msg("ChatService stopped")
 
 	return nil
 }
