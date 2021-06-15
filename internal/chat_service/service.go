@@ -62,6 +62,9 @@ func (s *ChatService) DescribeChat(ctx context.Context, id uint64) (*chat.Chat, 
 }
 
 func (s *ChatService) RemoveChat(ctx context.Context, id uint64) error {
+	if err := s.storageRepo.Remove(ctx, id); err != nil {
+		return errors.Wrap(err, "remove chat")
+	}
 	return nil
 }
 

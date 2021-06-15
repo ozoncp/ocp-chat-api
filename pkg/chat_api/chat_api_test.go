@@ -51,8 +51,7 @@ var _ = Describe("ChatApi", func() {
 	Context("Test Chat Service", func() {
 		BeforeEach(func() {})
 
-		JustBeforeEach(func() {
-		})
+		JustBeforeEach(func() {})
 
 		It("Nothing happened", func() {
 			_ = context.Background()
@@ -83,6 +82,17 @@ var _ = Describe("ChatApi", func() {
 			chatStorage.EXPECT().Describe(gomock.Any(), idToGet).Times(1)
 
 			_, err := chatService.DescribeChat(ctx, idToGet)
+			gomega.Expect(err).To(gomega.BeNil())
+
+			fmt.Printf("%+v finished", chatService)
+		})
+
+		It("Remove", func() {
+			ctx := context.Background()
+			idToGet := uint64(12123)
+			chatStorage.EXPECT().Remove(gomock.Any(), idToGet).Times(1)
+
+			err := chatService.RemoveChat(ctx, idToGet)
 			gomega.Expect(err).To(gomega.BeNil())
 
 			fmt.Printf("%+v finished", chatService)
