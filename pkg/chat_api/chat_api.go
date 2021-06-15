@@ -2,6 +2,7 @@ package chat_api
 
 import (
 	"context"
+	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/pkg/errors"
 )
 
@@ -9,7 +10,7 @@ import (
 
 type Service interface {
 	CreateChat(ctx context.Context, classroom uint64, link string) error
-	DescribeChat(ctx context.Context, id uint64) (string, error)
+	DescribeChat(ctx context.Context, id uint64) (*chat.Chat, error)
 	RemoveChat(ctx context.Context, id uint64) error
 	ListChats(ctx context.Context) ([]string, error)
 }

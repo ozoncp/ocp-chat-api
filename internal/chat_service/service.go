@@ -53,8 +53,12 @@ func (s *ChatService) CreateChat(ctx context.Context, classroom uint64, link str
 	return nil
 }
 
-func (s *ChatService) DescribeChat(ctx context.Context, id uint64) (string, error) {
-	return "", nil
+func (s *ChatService) DescribeChat(ctx context.Context, id uint64) (*chat.Chat, error) {
+	ch, err := s.storageRepo.Describe(ctx, id)
+	if err != nil {
+		return nil, errors.Wrap(err, "describe chat")
+	}
+	return ch, nil
 }
 
 func (s *ChatService) RemoveChat(ctx context.Context, id uint64) error {

@@ -77,10 +77,19 @@ var _ = Describe("ChatApi", func() {
 			fmt.Printf("%+v finished", chatService)
 		})
 
+		It("Describe", func() {
+			ctx := context.Background()
+			idToGet := uint64(12123)
+			chatStorage.EXPECT().Describe(gomock.Any(), idToGet).Times(1)
+
+			_, err := chatService.DescribeChat(ctx, idToGet)
+			gomega.Expect(err).To(gomega.BeNil())
+
+			fmt.Printf("%+v finished", chatService)
+		})
 	})
 
 	AfterEach(func() {
-		//chats2Save = []*chat.Chat{}
 		ctrl.Finish()
 	})
 

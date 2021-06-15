@@ -6,6 +6,7 @@ package chat_api
 
 import (
 	context "context"
+	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -49,7 +50,7 @@ func (mr *MockServiceMockRecorder) CreateChat(ctx, classroom, link interface{}) 
 }
 
 // DescribeChat mocks base method.
-func (m *MockService) DescribeChat(ctx context.Context, id uint64) (string, error) {
+func (m *MockService) DescribeChat(ctx context.Context, id uint64) (*chat.Chat, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DescribeChat", ctx, id)
 	ret0, _ := ret[0].(string)
