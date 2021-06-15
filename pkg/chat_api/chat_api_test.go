@@ -23,8 +23,8 @@ var _ = Describe("ChatApi", func() {
 	)
 
 	// тесты на Add:
-	// 1. Создали сервис, запустили, вызвали 2 Add, закрыли. Сейвер вызывался, данные там, postgres вызывался, данные там.
-	// 2. Создали сервис, запустили, завершили. Сейвер вызывался, данных нет, в постгре тоже нет.
+	// 1. Создали сервис, запустили, вызвали 10 Add, закрыли. Сторадж вызывался на каждый из Add'ов. Сейвер вызывался на каждый из Add'ов. Очередь молчала.
+	// 2. Создали сервис, запустили, завершили. Сейвер не вызывался, Сторадж тоже не вызывался, Очередь не вызывалась.
 	// 3. Создали сервис, запустили, закинули туда больше данных чем он смог переварить(100 чатов, а у него буфер на 10).
 	//    Записалось 10 штук, остальные потеряны. Это 10 самые новые (с 90 по 99).
 	//   В постгрю записалось все что было.
@@ -54,12 +54,20 @@ var _ = Describe("ChatApi", func() {
 		JustBeforeEach(func() {
 		})
 
+		It("Nothing happened", func() {
+			_ = context.Background()
+
+			fmt.Printf("%+v finished", chatService)
+		})
+
 		It("Add 10 objs only", func() {
 			ctx := context.Background()
 
 			for i := 0; i < 10; i++ {
 				chatStorage.EXPECT().Insert(gomock.Any(), uint64(i), fmt.Sprintf("http://%dclass.com", i)).Times(1)
 			}
+
+			statisticsSaver.EXPECT().Save(gomock.Any(), gomock.Any()).Times(10)
 
 			for i := 0; i < 10; i++ {
 				err := chatService.CreateChat(ctx, uint64(i), fmt.Sprintf("http://%dclass.com", i))

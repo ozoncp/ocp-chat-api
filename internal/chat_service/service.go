@@ -41,9 +41,15 @@ func New(deps *Deps) *ChatService {
 }
 
 func (s *ChatService) CreateChat(ctx context.Context, classroom uint64, link string) error {
-	if _, err := s.storageRepo.Insert(ctx, classroom, link); err != nil {
+	ch, err := s.storageRepo.Insert(ctx, classroom, link)
+	if err != nil {
 		return errors.Wrap(err, "insert to repo")
 	}
+
+	if err := s.statisticsSaver.Save(ctx, ch); err != nil {
+		return errors.Wrap(err, "save to statistics")
+	}
+
 	return nil
 }
 
