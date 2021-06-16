@@ -37,18 +37,18 @@ func Run() error {
 	defaultLogger.Info().Msg("Hi, Victor Akhlynin will write this project")
 
 	defaultLogger.Info().Msgf("started service %v", os.Args[0])
-	for i := 0; i < 5; i++ {
-		f, err := os.Open("go.mod")
-		if err != nil {
-			return errors.Wrap(err, "open file")
-		}
-		defaultLogger.Info().Msg("open successful")
-		defer func() {
-			if err := f.Close(); err != nil {
-				defaultLogger.Error().Err(err).Msg("close file bad")
-			}
-		}()
-	}
+	//for i := 0; i < 5; i++ {
+	//	f, err := os.Open("go.mod")
+	//	if err != nil {
+	//		return errors.Wrap(err, "open file")
+	//	}
+	//	defaultLogger.Info().Msg("open successful")
+	//	defer func() {
+	//		if err := f.Close(); err != nil {
+	//			defaultLogger.Error().Err(err).Msg("close file bad")
+	//		}
+	//	}()
+	//}
 
 	cfg := NewDefaultConfig()
 	if err := envconfig.Process("", cfg); err != nil {
