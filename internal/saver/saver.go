@@ -73,6 +73,7 @@ func (s *BufferingSaver) Run(ctx context.Context) error {
 			if err := s.flusher.Flush(ctx, s.repo, s.bufferChats); err != nil {
 				return errors.Wrap(err, "flush by ctx done")
 			}
+			return errors.Wrap(ctx.Err(), "finish buffering saver by context done")
 		case <-ticker.C:
 			if err := s.flusher.Flush(ctx, s.repo, s.bufferChats); err != nil {
 				return errors.Wrap(err, "flush by ticker")
