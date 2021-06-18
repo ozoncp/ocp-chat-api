@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option go_package = "./;chat_api";
+
+package chat_api;
+
+service ChatApi {
+    rpc CreateChat (CreateChatRequest) returns (CreateChatResponse);
+    rpc DescribeChat (DescribeChatRequest) returns (DescribeChatResponse);
+    rpc ListChats (ListChatsRequest) returns (ListChatsResponse);
+    rpc RemoveChat (RemoveChatRequest) returns (RemoveChatResponse);
+}
+
+message CreateChatRequest {
+    uint64 classroom_id = 1;
+    string link = 2;
+}
+
+message CreateChatResponse {
+    uint64 id = 1;
+    string message = 2;
+}
+
+message DescribeChatRequest {
+    uint64 id = 1;
+}
+
+message DescribeChatResponse {
+    ChatInstance chat = 1;
+}
+
+message ListChatsRequest {}
+
+message ChatInstance {
+    uint64 id = 1;
+    uint64 classroom_id = 2;
+    string link = 3;
+}
+
+message ListChatsResponse {
+    repeated ChatInstance packet = 1;
+}
+
+message RemoveChatRequest {
+    uint64 id = 1;
+}
+
+message RemoveChatResponse {}

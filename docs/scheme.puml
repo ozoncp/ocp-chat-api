@@ -1,0 +1,28 @@
+@startuml
+
+grpcAPI --> Service
+
+interface Saver
+interface Flusher
+interface FlushableRepo
+interface Repo
+
+'clickhouse
+Service --> Saver
+Service --> Repo
+Saver --> ClickhouseSaver
+ClickhouseSaver --> Flusher
+ClickhouseSaver --> FlushableRepo
+Flusher --> ClickhouseFlusher
+ClickhouseFlusher -> FlushableRepo
+FlushableRepo --> ClickhouseRepo
+
+'postgres
+Service --> Repo
+Repo --> PostgresRepo
+
+'kafka
+Repo --> KafkaRepo
+
+
+@enduml

@@ -1,14 +1,22 @@
 build:
-	go build -o bin/ocp-chat-api -mod vendor cmd/ocp-chat-api/main.go
+	go build -o bin/ocp-chat-api ./cmd/ocp-chat-api
 
-run:
+run: build
 	@./bin/ocp-chat-api
 
 test:
-	go test -test.v ./...
+	go test -test.v -coverprofile=coverage.out ./...
 
 cover: test
 	go tool cover -html=coverage.out
 
 lint:
 	golangci-lint run -v
+
+generate-mocks:
+	go generate ./...
+
+grpc-proto:
+	protoc --proto_path=pkg/chat_api --go_out=pkg/chat_api  --go_opt=paths=source_relative --go-grpc_out=pkg/chat_api --go_opt=paths=source_relative ocp-chat-api.proto
+
+all: generate-mocks grpc-proto lint test

@@ -1,9 +1,10 @@
 package utils
 
 import (
+	"math"
+
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	errors "github.com/pkg/errors"
-	"math"
 )
 
 var ErrDuplicateVal = errors.New("value is duplicating, cannot fill correctly")
@@ -52,11 +53,11 @@ func ExcludeMembersOfList(list []int, removeUs []int) []int {
 	return resultList
 }
 
-func SplitChatListToChunks(chunkSize int, slice ...chat.Chat) [][]chat.Chat {
+func SplitChatsListToChunks(chunkSize int, slice ...*chat.Chat) [][]*chat.Chat {
 	length := len(slice)
 	chunkNum := length/chunkSize + 1
 
-	chunks := make([][]chat.Chat, 0, length)
+	chunks := make([][]*chat.Chat, 0, length)
 	for i := 0; i < chunkNum; i++ {
 		end := int(math.Min(float64((i+1)*chunkSize), float64(length)))
 		newSlice := slice[i*chunkSize : end]
@@ -70,10 +71,10 @@ func SplitChatListToChunks(chunkSize int, slice ...chat.Chat) [][]chat.Chat {
 func ChatsMap(chats []chat.Chat) (map[uint64]chat.Chat, error) {
 	chatsMap := make(map[uint64]chat.Chat, len(chats))
 	for _, c := range chats {
-		if _, found := chatsMap[c.ID()]; found {
-			return nil, errors.Wrapf(ErrDuplicateVal, "key %v is in keys map yet", c.ID())
+		if _, found := chatsMap[c.ID]; found {
+			return nil, errors.Wrapf(ErrDuplicateVal, "key %v is in keys map yet", c.ID)
 		}
-		chatsMap[c.ID()] = c
+		chatsMap[c.ID] = c
 	}
 	return chatsMap, nil
 }
