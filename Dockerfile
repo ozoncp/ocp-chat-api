@@ -17,6 +17,7 @@ ARG RUNNING_BIN=ocp-chat-api
 ARG SRC_PATH
 
 COPY --from=build-stage ${SRC_PATH}/bin/${RUNNING_BIN} /usr/local/bin/${RUNNING_BIN}
+COPY --from=build-stage ${SRC_PATH}/migrations ${SRC_PATH}/migrations
 WORKDIR ${SRC_PATH}
 
 CMD ["ocp-chat-api"]

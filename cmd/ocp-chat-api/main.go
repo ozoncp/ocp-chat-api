@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"github.com/ozoncp/ocp-chat-api/internal/db"
 	"github.com/ozoncp/ocp-chat-api/internal/saver"
 	"net"
 	"os"
@@ -15,6 +18,7 @@ import (
 
 	"github.com/ozoncp/ocp-chat-api/pkg/chat_api"
 
+	"github.com/jackc/pgx"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_repo"
@@ -37,18 +41,6 @@ func Run() error {
 	defaultLogger.Info().Msg("Hi, Victor Akhlynin will write this project")
 
 	defaultLogger.Info().Msgf("started service %v", os.Args[0])
-	//for i := 0; i < 5; i++ {
-	//	f, err := os.Open("go.mod")
-	//	if err != nil {
-	//		return errors.Wrap(err, "open file")
-	//	}
-	//	defaultLogger.Info().Msg("open successful")
-	//	defer func() {
-	//		if err := f.Close(); err != nil {
-	//			defaultLogger.Error().Err(err).Msg("close file bad")
-	//		}
-	//	}()
-	//}
 
 	cfg := NewDefaultConfig()
 	if err := envconfig.Process("", cfg); err != nil {
@@ -56,7 +48,31 @@ func Run() error {
 	}
 
 	// persistent storage interaction
-	chatStorage := chat_repo.NewRepoInMemory() // future postgres
+	ctx := context.Background()
+
+	dbConfig := &db.DatabaseConf{
+		Host:             cfg.DatabaseCfg.Host,
+		Port:             cfg.DatabaseCfg.Port,
+		User:             cfg.DatabaseCfg.User,
+		Password:         cfg.DatabaseCfg.Password,
+		DBName:           cfg.DatabaseCfg.DatabaseName,
+		Timeout:          defaultSQLTimeout,
+		MaxAllowedPacket: defaultSQLMaxAllowedPacket,
+		MultiStatements:  defaultSQLMultiStatements,
+	}
+
+	migrateConfig := &db.MigrateConf{
+		MigrationsURL:      cfg.DatabaseCfg.MigrationsURL,
+		MigrationRun:       cfg.DatabaseCfg.MigrationRun,
+		MigrationDBVersion: cfg.DatabaseCfg.MigrationDBVersion,
+	}
+
+	sqlDB, err := db.InitAndCreateDB(ctx, dbConfig, migrateConfig)
+	if err != nil {
+		return errors.Wrap(err, "init and create db")
+	}
+
+	chatStorage := chat_repo.NewPostgresRepo(sqlDB)
 
 	// our i/o channel with chat objects
 	chatQueue := chat_repo.NewRepoInMemory() // future Kafka
@@ -97,7 +113,6 @@ func Run() error {
 	grpcServer := grpc.NewServer(opts...)
 	chat_api.RegisterChatApiServer(grpcServer, chatAPI)
 
-	ctx := context.Background()
 	runner, ctx := errgroup.WithContext(ctx)
 	logger := defaultLogger
 
@@ -162,4 +177,26 @@ func DefaultOSSignals() []os.Signal {
 
 func InterruptedFromOS(err error) bool {
 	return errors.Is(err, ErrOSSignalInterrupt)
+}
+
+// PostgresFormatDSN  format: postgres://username:password@localhost:5432/database_name
+func PostgresFormatDSN(c *pgx.ConnConfig) string {
+	psqlInfo := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", c.User, c.Password, c.Host, c.Port, c.Database)
+	return psqlInfo
+}
+
+func NewPostgresSQL(ctx context.Context, psqlConfig *pgx.ConnConfig) (*sql.DB, error) {
+	logger := *zerolog.Ctx(ctx)
+	logger.Info().Str("component", "database").Str("stage", "create").Msgf("opening connection")
+
+	sqlDB, err := sql.Open("postgres", PostgresFormatDSN(psqlConfig))
+	if err != nil {
+		return nil, errors.Wrap(err, "open database")
+	}
+
+	if err = sqlDB.Ping(); err != nil {
+		return nil, errors.Wrap(err, "ping database")
+	}
+
+	return sqlDB, nil
 }
