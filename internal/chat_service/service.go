@@ -40,17 +40,17 @@ func New(deps *Deps) *ChatService {
 	}
 }
 
-func (s *ChatService) CreateChat(ctx context.Context, classroom uint64, link string) error {
+func (s *ChatService) CreateChat(ctx context.Context, classroom uint64, link string) (*chat.Chat, error) {
 	ch, err := s.storageRepo.Insert(ctx, classroom, link)
 	if err != nil {
-		return errors.Wrap(err, "insert to repo")
+		return nil, errors.Wrap(err, "insert to repo")
 	}
 
 	if err := s.statisticsSaver.Save(ctx, ch); err != nil {
-		return errors.Wrap(err, "save to statistics")
+		return nil, errors.Wrap(err, "save to statistics")
 	}
 
-	return nil
+	return ch, nil
 }
 
 func (s *ChatService) DescribeChat(ctx context.Context, id uint64) (*chat.Chat, error) {
@@ -68,6 +68,10 @@ func (s *ChatService) RemoveChat(ctx context.Context, id uint64) error {
 	return nil
 }
 
-func (s *ChatService) ListChats(ctx context.Context) ([]string, error) {
-	return []string{}, nil
+func (s *ChatService) ListChats(ctx context.Context) ([]*chat.Chat, error) {
+	chatsAll, err := s.storageRepo.GetAll(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "list chats")
+	}
+	return chatsAll, nil
 }

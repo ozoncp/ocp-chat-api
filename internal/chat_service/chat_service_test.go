@@ -69,7 +69,7 @@ var _ = Describe("ChatApi", func() {
 			statisticsSaver.EXPECT().Save(gomock.Any(), gomock.Any()).Times(10)
 
 			for i := 0; i < 10; i++ {
-				err := chatService.CreateChat(ctx, uint64(i), fmt.Sprintf("http://%dclass.com", i))
+				_, err := chatService.CreateChat(ctx, uint64(i), fmt.Sprintf("http://%dclass.com", i))
 				gomega.Expect(err).To(gomega.BeNil())
 			}
 

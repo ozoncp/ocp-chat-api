@@ -9,10 +9,10 @@ import (
 //go:generate mockgen --source=./chat_api.go -destination=../mocks/chat_api/service_mock.go -package=chat_api
 
 type Service interface {
-	CreateChat(ctx context.Context, classroom uint64, link string) error
+	CreateChat(ctx context.Context, classroom uint64, link string) (*chat.Chat, error)
 	DescribeChat(ctx context.Context, id uint64) (*chat.Chat, error)
 	RemoveChat(ctx context.Context, id uint64) error
-	ListChats(ctx context.Context) ([]string, error)
+	ListChats(ctx context.Context) ([]*chat.Chat, error)
 }
 
 type ChatAPI struct {
@@ -26,52 +26,57 @@ func New(service Service) *ChatAPI {
 }
 
 func (s *ChatAPI) CreateChat(ctx context.Context, req *CreateChatRequest) (*CreateChatResponse, error) {
-	if err := s.service.CreateChat(ctx, req.ClassroomId, req.Link); err != nil {
+	ch, err := s.service.CreateChat(ctx, req.ClassroomId, req.Link)
+	if err != nil {
 		return nil, errors.Wrap(err, "create chat")
 	}
 
 	return &CreateChatResponse{
-		Id:      2423423423,
-		Message: "ok",
+		Id:      ch.ID,
+		Message: "created successfully",
 	}, nil
 }
 
 func (s *ChatAPI) DescribeChat(ctx context.Context, req *DescribeChatRequest) (*DescribeChatResponse, error) {
+	ch, err := s.service.DescribeChat(ctx, req.Id)
+	if err != nil {
+		return nil, errors.Wrap(err, "describe chat")
+	}
 	return &DescribeChatResponse{
 		Chat: &ChatInstance{
-			Id:          222,
-			ClassroomId: 111,
-			Link:        "asdfasfsadf.com",
+			Id:          ch.ID,
+			ClassroomId: ch.ClassroomID,
+			Link:        ch.Link,
 		},
 	}, nil
 }
 
 func (s *ChatAPI) RemoveChat(ctx context.Context, req *RemoveChatRequest) (*RemoveChatResponse, error) {
-	return &RemoveChatResponse{}, nil
+	err := s.service.RemoveChat(ctx, req.Id)
+	if err != nil {
+		return nil, errors.Wrap(err, "remove chat")
+	}
+	return nil, nil
 }
 
 func (s *ChatAPI) ListChats(ctx context.Context, req *ListChatsRequest) (*ListChatsResponse, error) {
-	c1 := &ChatInstance{
-		Id:          222,
-		ClassroomId: 111,
-		Link:        "asdfasfsadf.com",
+	chats, err := s.service.ListChats(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "list chats")
 	}
 
-	c2 := &ChatInstance{
-		Id:          222,
-		ClassroomId: 111,
-		Link:        "asdfasfsadf.com",
+	var chatInstances []*ChatInstance
+	for _, ch := range chats {
+		newChat := &ChatInstance{
+			Id:          ch.ID,
+			ClassroomId: ch.ClassroomID,
+			Link:        ch.Link,
+		}
+		chatInstances = append(chatInstances, newChat)
 	}
 
-	c3 := &ChatInstance{
-		Id:          222,
-		ClassroomId: 111,
-		Link:        "asdfasfsadf.com",
-	}
-
-	chats := []*ChatInstance{c1, c2, c3}
 	return &ListChatsResponse{
-		Packet: chats,
+		Packet: chatInstances,
 	}, nil
 }
 

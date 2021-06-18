@@ -10,7 +10,6 @@ require (
 	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.10.2 // indirect
-	github.com/mattes/migrate v3.0.1+incompatible // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
 	github.com/pkg/errors v0.9.1

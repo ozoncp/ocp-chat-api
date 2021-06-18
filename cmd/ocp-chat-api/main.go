@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"github.com/ozoncp/ocp-chat-api/internal/db"
 	"github.com/ozoncp/ocp-chat-api/internal/saver"
 	"net"
@@ -18,7 +16,6 @@ import (
 
 	"github.com/ozoncp/ocp-chat-api/pkg/chat_api"
 
-	"github.com/jackc/pgx"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_repo"
@@ -177,26 +174,4 @@ func DefaultOSSignals() []os.Signal {
 
 func InterruptedFromOS(err error) bool {
 	return errors.Is(err, ErrOSSignalInterrupt)
-}
-
-// PostgresFormatDSN  format: postgres://username:password@localhost:5432/database_name
-func PostgresFormatDSN(c *pgx.ConnConfig) string {
-	psqlInfo := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", c.User, c.Password, c.Host, c.Port, c.Database)
-	return psqlInfo
-}
-
-func NewPostgresSQL(ctx context.Context, psqlConfig *pgx.ConnConfig) (*sql.DB, error) {
-	logger := *zerolog.Ctx(ctx)
-	logger.Info().Str("component", "database").Str("stage", "create").Msgf("opening connection")
-
-	sqlDB, err := sql.Open("postgres", PostgresFormatDSN(psqlConfig))
-	if err != nil {
-		return nil, errors.Wrap(err, "open database")
-	}
-
-	if err = sqlDB.Ping(); err != nil {
-		return nil, errors.Wrap(err, "ping database")
-	}
-
-	return sqlDB, nil
 }
