@@ -46,6 +46,7 @@ func Run() error {
 
 	// persistent storage interaction
 	ctx := context.Background()
+	ctx = defaultLogger.WithContext(ctx)
 
 	dbConfig := &db.DatabaseConf{
 		Host:             cfg.DatabaseCfg.Host,
