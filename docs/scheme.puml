@@ -1,28 +1,56 @@
 @startuml
 
+interface Service {
+	CreateChat(Context, classroom uint64, link string) (*chat.Chat, error)
+	DescribeChat(Context, id uint64) (*Chat, error)
+	RemoveChat(Context, id uint64) error
+	ListChats(Context) ([]*Chat, error)
+
+}
+
+interface Saver {
+    Save(ctx context.Context, ch *chat.Chat) error
+}
+
+interface Flusher {
+    Flush(Context, FlushableChatRepo, []*Chat) error
+}
+
+interface FlushableRepo {
+    AddBatch(Context, []*Chat) error
+}
+interface Repo {
+    GetAll(Context) ([]*Chat, error)
+	Insert(Context, classroomID uint64, link string) (*chat.Chat, error)
+	Describe(Context, chatID uint64) (*Chat, error)
+	Remove(Context, chatID uint64) error
+}
+
 grpcAPI --> Service
-
-interface Saver
-interface Flusher
-interface FlushableRepo
-interface Repo
-
+Service --> grpcAPIService
 'clickhouse
-Service --> Saver
-Service --> Repo
-Saver --> ClickhouseSaver
-ClickhouseSaver --> Flusher
-ClickhouseSaver --> FlushableRepo
+grpcAPIService --> Saver
+Saver --> BufferingSaver
+BufferingSaver --> Flusher
+BufferingSaver --> FlushableRepo
 Flusher --> ClickhouseFlusher
 ClickhouseFlusher -> FlushableRepo
 FlushableRepo --> ClickhouseRepo
 
-'postgres
-Service --> Repo
+'postgres chat storage
+grpcAPIService --> Repo
 Repo --> PostgresRepo
+note right on link
+chatStorage
+end note
 
 'kafka
-Repo --> KafkaRepo
-
+grpcAPIService --> Repo
+Repo --> InMemoryRepo
+note right on link
+statisticsRepo
+(later will be KafkaRepo,
+now stub here)
+end note
 
 @enduml
