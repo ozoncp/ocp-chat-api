@@ -26,7 +26,7 @@ services:
       POSTGRES_PASSWORD: example
       POSTGRES_DB: chat_db
     volumes:
-      - /Users/vvakhlyn/go/src/github.com/letsdoitnow7777/ocp-chat-api/third_party/db/postgres_data:/var/lib/postgresql
+      - ${PWD}/third_party/db/postgres_data:/var/lib/postgresql
     ports:
       - 5432:5432
     networks:
