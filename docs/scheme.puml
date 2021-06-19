@@ -35,7 +35,13 @@ BufferingSaver --> Flusher
 BufferingSaver --> FlushableRepo
 Flusher --> ClickhouseFlusher
 ClickhouseFlusher -> FlushableRepo
-FlushableRepo --> ClickhouseRepo
+FlushableRepo --> InMemoryRepo1
+note right on link
+statisticsRepo
+(later will be ClickhouseRepo,
+now stub here)
+end note
+
 
 'postgres chat storage
 grpcAPIService --> Repo
@@ -48,7 +54,7 @@ end note
 grpcAPIService --> Repo
 Repo --> InMemoryRepo
 note right on link
-statisticsRepo
+queueRepo
 (later will be KafkaRepo,
 now stub here)
 end note
