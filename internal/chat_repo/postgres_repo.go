@@ -9,6 +9,7 @@ import (
 )
 
 var ErrNoRowsToDelete = errors.New("no chat with this params")
+var ErrMoreThan1Created = errors.New("more than 1 entry added, it's prohibited")
 
 type PostgresRepo struct {
 	DB *sql.DB
@@ -66,19 +67,26 @@ func (p *PostgresRepo) Insert(ctx context.Context, classroomID uint64, link stri
 	logger := zerolog.Ctx(ctx).With().Uint64("classroom_id", classroomID).Str("link", link).Logger()
 	// fixme no actions on duplicate, need uniqueness (constraints)
 	query := `INSERT INTO chats (classroom_id, link)
-		VALUES ($1, $2);
+		VALUES ($1, $2) RETURNING id;
 	`
-	rows, err := p.DB.ExecContext(ctx, query, classroomID, link)
+	rows, err := p.DB.QueryContext(ctx, query, classroomID, link)
 	if err != nil {
 		return nil, errors.Wrap(err, "insert")
 	}
 
-	id, err := rows.LastInsertId()
-	if err != nil {
-		return nil, errors.Wrap(err, "get id of inserted row")
+	var id uint64
+	i := 0
+	for rows.Next() {
+		if i != 0 {
+			return nil, errors.Wrap(ErrMoreThan1Created, "insert entry")
+		}
+		if err := rows.Scan(&id); err != nil {
+			return nil, errors.Wrap(err, "get id of inserted row")
+		}
+		i++
 	}
 
-	logger.Info().Msgf("successfully added. last_index = %d", id)
+	logger.Info().Msgf("successfully added. id = %d", id)
 	ch := &chat.Chat{
 		ID:          uint64(id),
 		ClassroomID: classroomID,

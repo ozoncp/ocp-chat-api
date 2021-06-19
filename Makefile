@@ -38,7 +38,7 @@ docker-build:
 docker-run:
 	docker run -p 8080:80 --env-file ${ENV_FILE} ${DOCKER_IMAGE}:${TAG}
 
-docker-compose-up:
+docker-compose-up: generate-mocks grpc-proto docker-build
 	TAG=${TAG} docker-compose up --remove-orphans
 
 all: generate-mocks grpc-proto lint test docker-build docker-run
