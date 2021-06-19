@@ -41,4 +41,9 @@ docker-run:
 docker-compose-up: generate-mocks grpc-proto docker-build
 	TAG=${TAG} docker-compose up --remove-orphans
 
+client:
+	go get github.com/fullstorydev/grpcui/...
+	go install github.com/fullstorydev/grpcui/cmd/grpcui@latest
+	grpcui -plaintext -proto pkg/chat_api/ocp-chat-api.proto 127.0.0.1:5300
+
 all: generate-mocks grpc-proto lint test docker-build docker-run
