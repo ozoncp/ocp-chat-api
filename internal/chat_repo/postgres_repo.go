@@ -71,7 +71,6 @@ func (p *PostgresRepo) Insert(ctx context.Context, classroomID uint64, link stri
 		Str("link", link).Logger()
 	logger.Info().Msg("insert")
 
-	// fixme no actions on duplicate, need uniqueness (constraints)
 	query := `INSERT INTO chats (classroom_id, link)
 		VALUES ($1, $2) RETURNING id;
 	`
