@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -12,7 +13,6 @@ import (
 	//_ "github.com/mattes/migrate/source/file"
 	_ "github.com/golang-migrate/migrate/v4/source/file" // required for file://migrations dir
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog"
 )
 
 type MigrateConf struct {
@@ -37,7 +37,7 @@ type DatabaseConf struct {
 }
 
 func MigrateToVersion(ctx context.Context, psqlConf *pgx.ConnConfig, cfg *MigrateConf) error {
-	logger := *zerolog.Ctx(ctx)
+	logger := utils.LoggerFromCtxOrCreate(ctx)
 
 	connectionString := PostgresFormatDSN(psqlConf)
 	// nolint:godox // ok fixmee
@@ -76,7 +76,7 @@ func MigrateToVersion(ctx context.Context, psqlConf *pgx.ConnConfig, cfg *Migrat
 }
 
 func InitAndCreateDB(ctx context.Context, dbCfg *DatabaseConf, migrateCfg *MigrateConf) (*sql.DB, error) {
-	logger := *zerolog.Ctx(ctx)
+	logger := utils.LoggerFromCtxOrCreate(ctx)
 
 	psqlConf := &pgx.ConnConfig{
 		Host:     dbCfg.Host,
@@ -117,7 +117,7 @@ func PostgresFormatDSN(c *pgx.ConnConfig) string {
 }
 
 func NewPostgresSQL(ctx context.Context, psqlConfig *pgx.ConnConfig) (*sql.DB, error) {
-	logger := *zerolog.Ctx(ctx)
+	logger := utils.LoggerFromCtxOrCreate(ctx)
 	logger.Info().Str("component", "database").Str("stage", "create").Msgf("opening connection")
 
 	sqlDB, err := sql.Open("postgres", PostgresFormatDSN(psqlConfig))

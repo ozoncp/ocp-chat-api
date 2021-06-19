@@ -56,7 +56,7 @@ func (s *ChatAPI) RemoveChat(ctx context.Context, req *RemoveChatRequest) (*Remo
 	if err != nil {
 		return nil, errors.Wrap(err, "remove chat")
 	}
-	return nil, nil
+	return &RemoveChatResponse{}, nil
 }
 
 func (s *ChatAPI) ListChats(ctx context.Context, req *ListChatsRequest) (*ListChatsResponse, error) {

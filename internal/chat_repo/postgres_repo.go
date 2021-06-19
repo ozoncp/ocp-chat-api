@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
+	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog"
 )
 
 var ErrNoRowsToDelete = errors.New("no chat with this params")
@@ -22,11 +22,11 @@ func NewPostgresRepo(db *sql.DB) *PostgresRepo {
 }
 
 func (p *PostgresRepo) GetAll(ctx context.Context) ([]*chat.Chat, error) {
-	logger := zerolog.Ctx(ctx).With().Logger()
-	logger = logger.With().Str("component", "iteration_manager").Logger()
-	logger.Info().Msg("run")
+	logger := utils.LoggerFromCtxOrCreate(ctx).With().Logger()
+	logger = logger.With().Str("component", "postgres_repo").Logger()
+	logger.Info().Msg("get all chats")
 
-	query := `select id, classroom_id, link from index_iterations;`
+	query := `select id, classroom_id, link from chats;`
 
 	rows, err := p.DB.QueryContext(ctx, query)
 	if err != nil {
@@ -64,7 +64,13 @@ func (p *PostgresRepo) GetAll(ctx context.Context) ([]*chat.Chat, error) {
 	return chats, nil
 }
 func (p *PostgresRepo) Insert(ctx context.Context, classroomID uint64, link string) (*chat.Chat, error) {
-	logger := zerolog.Ctx(ctx).With().Uint64("classroom_id", classroomID).Str("link", link).Logger()
+	logger := utils.LoggerFromCtxOrCreate(ctx).With().Logger()
+	logger = logger.With().
+		Str("component", "postgres_repo").
+		Uint64("classroom_id", classroomID).
+		Str("link", link).Logger()
+	logger.Info().Msg("insert")
+
 	// fixme no actions on duplicate, need uniqueness (constraints)
 	query := `INSERT INTO chats (classroom_id, link)
 		VALUES ($1, $2) RETURNING id;
@@ -96,8 +102,12 @@ func (p *PostgresRepo) Insert(ctx context.Context, classroomID uint64, link stri
 }
 
 func (p *PostgresRepo) Describe(ctx context.Context, chatID uint64) (*chat.Chat, error) {
-	logger := zerolog.Ctx(ctx).With().Uint64("chat_id", chatID).Logger()
-	logger.Debug().Msg("describe")
+	logger := utils.LoggerFromCtxOrCreate(ctx).With().Logger()
+	logger = logger.With().
+		Str("component", "postgres_repo").
+		Uint64("id", chatID).Logger()
+	logger.Info().Msg("desrcibe")
+
 	query := `select id, classroom_id, link from chats WHERE id = $1;`
 
 	rows := p.DB.QueryRowContext(ctx, query, chatID)
@@ -123,6 +133,12 @@ func (p *PostgresRepo) Describe(ctx context.Context, chatID uint64) (*chat.Chat,
 }
 
 func (p *PostgresRepo) Remove(ctx context.Context, chatID uint64) error {
+	logger := utils.LoggerFromCtxOrCreate(ctx).With().Logger()
+	logger = logger.With().
+		Str("component", "postgres_repo").
+		Uint64("id", chatID).Logger()
+	logger.Info().Msg("remove")
+
 	query := `DELETE FROM chats WHERE id = $1;`
 
 	res, err := p.DB.ExecContext(ctx, query, chatID)
