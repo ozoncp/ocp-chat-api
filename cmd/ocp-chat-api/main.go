@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"github.com/Shopify/sarama"
+
 	"github.com/ozoncp/ocp-chat-api/internal/db"
 	"github.com/ozoncp/ocp-chat-api/internal/saver"
 	"net"
@@ -44,7 +47,7 @@ func Run() error {
 		return errors.Wrap(err, "read config from env")
 	}
 
-	// persistent storage interaction
+	// persistent storage for chats in Postgres
 	ctx := context.Background()
 	ctx = defaultLogger.WithContext(ctx)
 
@@ -72,8 +75,42 @@ func Run() error {
 
 	chatStorage := chat_repo.NewPostgresRepo(sqlDB)
 
-	// our i/o channel with chat objects
-	chatQueue := chat_repo.NewRepoInMemory() // future Kafka
+	// our queue Kafka
+
+	const defaultKafkaTopic = "chats"
+	const defaultKafkaPartition = 0
+	const defaultKafkaTransport = "tcp"
+	const defaultKafkaAddr = "kafka1.:9092"
+	const defaultKafkaReadTimeout = 10 * time.Second
+	//
+	//kafkaReader := kafka.NewReader(kafka.ReaderConfig{
+	//	Brokers:   []string{defaultKafkaAddr},
+	//	Topic:     defaultKafkaTopic,
+	//	Partition: defaultKafkaPartition,
+	//	MinBytes:  10e3, // 10KB
+	//	MaxBytes:  10e6, // 10MB
+	//})
+
+	brokers := []string{defaultKafkaAddr}
+	//producer, err := newProducer(brokers)
+	//if err != nil {
+	//	return err // todo
+	//}
+
+	consumer, err := sarama.NewConsumer(brokers, nil)
+	if err != nil {
+		return errors.Wrap(err, "new consumer")
+	}
+	//fixme maybe defer close()
+
+	//chatQueue := chat_queue.NewKafkaConsumer(nil, kafkaReader)
+
+	if err := subscribe(defaultKafkaTopic, consumer); err != nil {
+		return errors.Wrap(err, "subscribe")
+	}
+	//if err := kafkaReader.Close(); err != nil {
+	//	return errors.Wrap(err, "failed to close reader:")
+	//}
 
 	// statistics module
 	statisticsRepo := chat_repo.NewRepoInMemory()
@@ -94,8 +131,8 @@ func Run() error {
 	statisticsSaver := saver.New(statisticSaverDeps)
 
 	serviceDeps := &chat_service.Deps{
-		StorageRepo:     chatStorage,
-		QueueRepo:       chatQueue,
+		StorageRepo: chatStorage,
+		//QueueConsumer:   chatQueue,
 		StatisticsSaver: statisticsSaver,
 	}
 
@@ -175,4 +212,50 @@ func DefaultOSSignals() []os.Signal {
 
 func InterruptedFromOS(err error) bool {
 	return errors.Is(err, ErrOSSignalInterrupt)
+}
+
+func newProducer(brokers []string) (sarama.SyncProducer, error) {
+	config := sarama.NewConfig()
+	config.Producer.Partitioner = sarama.NewRandomPartitioner
+	config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Producer.Return.Successes = true
+	producer, err := sarama.NewSyncProducer(brokers, config)
+	return producer, err
+}
+
+func prepareMessage(topic, mess string) *sarama.ProducerMessage {
+	msg := &sarama.ProducerMessage{
+		Topic:     topic,
+		Partition: -1,
+		Value:     sarama.StringEncoder(mess),
+	}
+	return msg
+}
+
+func subscribe(topic string, consumer sarama.Consumer) error {
+
+	pl, err := consumer.Partitions(topic)
+	if err != nil {
+		return errors.Wrap(err, "partition")
+	}
+
+	initialOffset := sarama.OffsetOldest
+
+	for _, pt := range pl {
+		pc, err := consumer.ConsumePartition(topic, pt, initialOffset)
+		if err != nil {
+			defaultLogger.Err(err).Msgf("cannot consume partition. topic: %+v, pl %+v, pt %+v, offset %+v", topic, pl, pt, initialOffset)
+			continue
+		}
+		go func(pc sarama.PartitionConsumer) {
+			for message := range pc.Messages() {
+				messageRecieved(message)
+			}
+		}(pc)
+	}
+	return nil
+}
+
+func messageRecieved(mess *sarama.ConsumerMessage) {
+	fmt.Printf("%v\n", string(mess.Value))
 }

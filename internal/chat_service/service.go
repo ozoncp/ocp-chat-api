@@ -20,23 +20,28 @@ type Saver interface {
 	Save(ctx context.Context, ch *chat.Chat) error
 }
 
+//go:generate mockgen --source=./service.go -destination=../mocks/chat_saver/batch_saver_mock.go -package=chat_saver
+type MessageQueueConsumer interface {
+	ReadChatsBatch(ctx context.Context, batchSize int) ([]*chat.Chat, error)
+}
+
 type Deps struct {
 	StatisticsSaver Saver
 	StorageRepo     Repo
-	QueueRepo       Repo
+	QueueConsumer   MessageQueueConsumer
 }
 
 type ChatService struct {
 	statisticsSaver Saver
 	storageRepo     Repo
-	queueRepo       Repo
+	queueRepo       MessageQueueConsumer
 }
 
 func New(deps *Deps) *ChatService {
 	return &ChatService{
 		statisticsSaver: deps.StatisticsSaver,
 		storageRepo:     deps.StorageRepo,
-		queueRepo:       deps.QueueRepo,
+		queueRepo:       deps.QueueConsumer,
 	}
 }
 

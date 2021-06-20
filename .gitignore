@@ -15,3 +15,6 @@
 /vendor
 /.idea
 /bin
+/third_party/db/postgres_data/
+/third_party/kafka/data/
+/third_party/zookeeper/

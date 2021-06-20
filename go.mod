@@ -3,7 +3,7 @@ module github.com/ozoncp/ocp-chat-api
 go 1.16
 
 require (
-	github.com/fullstorydev/grpcui v1.1.0 // indirect
+	github.com/Shopify/sarama v1.29.0
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/mock v1.5.0
@@ -15,6 +15,7 @@ require (
 	github.com/onsi/gomega v1.13.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.22.0
+	github.com/segmentio/kafka-go v0.4.16
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
