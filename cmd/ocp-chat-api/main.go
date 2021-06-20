@@ -80,7 +80,7 @@ func Run() error {
 	const defaultKafkaTopic = "chats"
 	const defaultKafkaPartition = 0
 	const defaultKafkaTransport = "tcp"
-	const defaultKafkaAddr = "kafka1.:9092"
+	const defaultKafkaAddr = "kafka:9092"
 	const defaultKafkaReadTimeout = 10 * time.Second
 	//
 	//kafkaReader := kafka.NewReader(kafka.ReaderConfig{
