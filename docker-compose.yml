@@ -13,8 +13,9 @@ services:
 
     depends_on:
       - db
-      - zoo
-      - kafka-1
+# todo return them!
+#      - zoo
+#      - kafka-1
 
     networks:
       - backend

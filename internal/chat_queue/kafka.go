@@ -4,66 +4,34 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/Shopify/sarama"
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/pkg/errors"
 	"github.com/segmentio/kafka-go"
+	"os"
+	"time"
 )
 
 type Consumer struct {
-	kafkaConnection *kafka.Conn
-	kafkaReader     *kafka.Reader
+	kafkaConsumer sarama.Consumer
+	kafkaReader   *kafka.Reader
+	batchSize     int
+	topic         string
 }
 
-func NewKafkaConsumer(conn *kafka.Conn, reader *kafka.Reader) *Consumer {
+func NewKafkaConsumer(consumer sarama.Consumer, reader *kafka.Reader, batchSize int, topic string) *Consumer {
 	return &Consumer{
-		kafkaConnection: conn,
-		kafkaReader:     reader,
+		kafkaConsumer: consumer,
+		kafkaReader:   reader,
+		batchSize:     batchSize,
+		topic:         topic,
 	}
-}
-
-func (c *Consumer) ReadChatsBatchBad(ctx context.Context) ([]*chat.Chat, error) { // DO NOT USE, BAD AND RETURNS EMPTY ARRAY
-
-	logger := utils.LoggerFromCtxOrCreate(ctx)
-	batch := c.kafkaConnection.ReadBatch(10e3, 1e6) // fetch 1KB min, 1MB max
-
-	var err error
-	defer func() {
-		errClose := batch.Close()
-		if errClose != nil {
-			if err == nil {
-				err = errClose
-			} else {
-				logger.Warn().Msg("close batch")
-			}
-		}
-	}()
-
-	b := make([]byte, 10e3) // 1KB max per message
-	for {
-		_, err := batch.Read(b)
-		if err != nil {
-			break
-		}
-	}
-	return []*chat.Chat{}, nil
 }
 
 func (c *Consumer) ReadChatsBatch(ctx context.Context, batchSize int) ([]*chat.Chat, error) {
 	logger := utils.LoggerFromCtxOrCreate(ctx)
-	batch := c.kafkaConnection.ReadBatch(10e3, 1e6) // fetch 1KB min, 1MB max
-
-	var err error
-	defer func() {
-		errClose := batch.Close()
-		if errClose != nil {
-			if err == nil {
-				err = errClose
-			} else {
-				logger.Warn().Msg("close batch")
-			}
-		}
-	}()
 
 	var chats []*chat.Chat
 	for {
@@ -79,9 +47,68 @@ func (c *Consumer) ReadChatsBatch(ctx context.Context, batchSize int) ([]*chat.C
 		var ch *chat.Chat
 		err = json.NewDecoder(bytes.NewReader(m.Value)).Decode(ch)
 		if err != nil {
-			return nil, errors.Wrap(err, "extract json from message")
+			return nil, errors.Wrapf(err, "extract json from message: %+v", m.Value)
 		}
 		chats = append(chats, ch)
+		logger.Info().Msgf("chat added: %+v", ch)
 	}
 	return chats, nil
+}
+
+func (c *Consumer) Run(ctx context.Context) error {
+	logger := utils.LoggerFromCtxOrCreate(ctx)
+	//ticker := time.NewTicker(1 * time.Second)
+
+	pl, err := c.kafkaConsumer.Partitions(c.topic)
+	if err != nil {
+		return errors.Wrap(err, "partition")
+	}
+
+	initialOffset := sarama.OffsetOldest
+
+	var chats []*chat.Chat // todo channel -- queue
+
+	for _, pt := range pl {
+		pc, err := c.kafkaConsumer.ConsumePartition(c.topic, pt, initialOffset)
+		if err != nil {
+			logger.Err(err).Msgf("cannot consume partition. topic: %+v, pl %+v, pt %+v, offset %+v", c.topic, pl, pt, initialOffset)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		for m := range pc.Messages() {
+			var ch *chat.Chat
+			err = json.NewDecoder(bytes.NewReader(m.Value)).Decode(ch)
+			if err != nil {
+				logger.Warn().Err(err).Msgf("extract json from message: %+v", string(m.Value))
+				continue
+			}
+			chats = append(chats, ch)
+			logger.Info().Msgf("chat added: %+v", ch)
+		}
+	}
+	// todo ctx.Done()
+
+	return nil
+
+	//
+	//for {
+	//	select {
+	//	case <-ctx.Done():
+	//		return errors.Wrap(ctx.Err(), "finish buffering saver by context done")
+	//	case <- ticker.C:
+	//		logger.Warn().Msg("no messages for whole second")
+	//	default:
+	//		gotChats, err := c.ReadChatsBatch(ctx, c.batchSize)
+	//		if err != nil {
+	//			return errors.Wrap(err, "flush by ticker")
+	//		}
+	//		for _, ch:= range gotChats {
+	//			logger.Info().Msgf("chat: %+v", ch)
+	//		}
+	//	}
+	//}
+}
+
+func messageRecieved(mess *sarama.ConsumerMessage) {
+	_, _ = fmt.Fprintf(os.Stderr, "%v\n", string(mess.Value))
 }

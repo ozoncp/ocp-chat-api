@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/Shopify/sarama"
+	"github.com/ozoncp/ocp-chat-api/internal/chat_queue"
 	"github.com/ozoncp/ocp-chat-api/internal/db"
 	"github.com/ozoncp/ocp-chat-api/internal/saver"
+	"github.com/segmentio/kafka-go"
 	"net"
 	"os"
 	"os/signal"
@@ -81,35 +83,35 @@ func Run() error {
 	const defaultKafkaTransport = "tcp"
 	const defaultKafkaAddr = "kafka-1:9092"
 	const defaultKafkaReadTimeout = 10 * time.Second
-	//
-	//kafkaReader := kafka.NewReader(kafka.ReaderConfig{
-	//	Brokers:   []string{defaultKafkaAddr},
-	//	Topic:     defaultKafkaTopic,
-	//	Partition: defaultKafkaPartition,
-	//	MinBytes:  10e3, // 10KB
-	//	MaxBytes:  10e6, // 10MB
-	//})
 
-	brokers := []string{defaultKafkaAddr}
+	kafkaReader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:   []string{defaultKafkaAddr},
+		Topic:     defaultKafkaTopic,
+		Partition: defaultKafkaPartition,
+		MinBytes:  10e3, // 10KB
+		MaxBytes:  10e6, // 10MB
+	})
+
+	//brokers := []string{defaultKafkaAddr}
 	//producer, err := newProducer(brokers)
 	//if err != nil {
 	//	return err // todo
 	//}
 
-	consumer, err := sarama.NewConsumer(brokers, nil)
+	consumer, err := sarama.NewConsumer([]string{defaultKafkaAddr}, nil)
 	if err != nil {
 		return errors.Wrap(err, "new consumer")
 	}
 	//fixme maybe defer close()
 
-	//chatQueue := chat_queue.NewKafkaConsumer(nil, kafkaReader)
+	chatQueue := chat_queue.NewKafkaConsumer(consumer, kafkaReader, 4, defaultKafkaTopic)
 
-	if err := subscribe(defaultKafkaTopic, consumer); err != nil {
-		return errors.Wrap(err, "subscribe")
-	}
-	//if err := kafkaReader.Close(); err != nil {
-	//	return errors.Wrap(err, "failed to close reader:")
+	//if err := subscribe(defaultKafkaTopic, consumer); err != nil {
+	//	return errors.Wrap(err, "subscribe")
 	//}
+	if err := kafkaReader.Close(); err != nil {
+		return errors.Wrap(err, "failed to close reader:")
+	}
 
 	// statistics module
 	statisticsRepo := chat_repo.NewRepoInMemory()
@@ -130,8 +132,8 @@ func Run() error {
 	statisticsSaver := saver.New(statisticSaverDeps)
 
 	serviceDeps := &chat_service.Deps{
-		StorageRepo: chatStorage,
-		//QueueConsumer:   chatQueue,
+		StorageRepo:     chatStorage,
+		QueueConsumer:   chatQueue,
 		StatisticsSaver: statisticsSaver,
 	}
 
@@ -158,6 +160,13 @@ func Run() error {
 		logger.Info().Msg("Start serving grpc api")
 		if err := grpcServer.Serve(listener); err != nil {
 			return errors.Wrap(err, "grpc server serve")
+		}
+		return nil
+	})
+
+	runner.Go(func() error {
+		if err = chatQueue.Run(ctx); err != nil {
+			return errors.Wrap(err, "kafka chat queue run")
 		}
 		return nil
 	})
