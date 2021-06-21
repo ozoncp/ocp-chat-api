@@ -4,13 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/pkg/errors"
 	"github.com/segmentio/kafka-go"
-	"os"
 	"time"
 )
 
@@ -107,8 +105,4 @@ func (c *Consumer) Run(ctx context.Context) error {
 	//		}
 	//	}
 	//}
-}
-
-func messageRecieved(mess *sarama.ConsumerMessage) {
-	_, _ = fmt.Fprintf(os.Stderr, "%v\n", string(mess.Value))
 }

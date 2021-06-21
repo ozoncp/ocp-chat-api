@@ -118,17 +118,22 @@ func (m *MockSaver) EXPECT() *MockSaverMockRecorder {
 }
 
 // Save mocks base method.
-func (m *MockSaver) Save(ctx context.Context, ch *chat.Chat) error {
+func (m *MockSaver) Save(ctx context.Context, ch ...*chat.Chat) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", ctx, ch)
+	varargs := []interface{}{ctx}
+	for _, a := range ch {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Save", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Save indicates an expected call of Save.
-func (mr *MockSaverMockRecorder) Save(ctx, ch interface{}) *gomock.Call {
+func (mr *MockSaverMockRecorder) Save(ctx interface{}, ch ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockSaver)(nil).Save), ctx, ch)
+	varargs := append([]interface{}{ctx}, ch...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockSaver)(nil).Save), varargs...)
 }
 
 // MockMessageQueueConsumer is a mock of MessageQueueConsumer interface.

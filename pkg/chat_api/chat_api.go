@@ -3,12 +3,14 @@ package chat_api
 import (
 	"context"
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
+	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/pkg/errors"
 )
 
 //go:generate mockgen --source=./chat_api.go -destination=../mocks/chat_api/service_mock.go -package=chat_api
 
 type Service interface {
+	CreateMultipleChat(ctx context.Context, classroom []uint64, link []string) (error)
 	CreateChat(ctx context.Context, classroom uint64, link string) (*chat.Chat, error)
 	DescribeChat(ctx context.Context, id uint64) (*chat.Chat, error)
 	RemoveChat(ctx context.Context, id uint64) error
@@ -24,6 +26,18 @@ func New(service Service) *ChatAPI {
 		service: service,
 	}
 }
+
+func (s *ChatAPI) CreateMultipleChat(ctx context.Context, req *CreateMultipleChatRequest) (*CreateMultipleChatResponse, error) {
+	logger := utils.LoggerFromCtxOrCreate(ctx)
+	logger.Info().Msg("request create multiple chats")
+	err := s.service.CreateMultipleChat(ctx, req.ClassroomId, req.Link)
+	if err != nil {
+		return nil, errors.Wrap(err, "create chat")
+	}
+
+	return &CreateMultipleChatResponse{}, nil
+}
+
 
 func (s *ChatAPI) CreateChat(ctx context.Context, req *CreateChatRequest) (*CreateChatResponse, error) {
 	ch, err := s.service.CreateChat(ctx, req.ClassroomId, req.Link)

@@ -37,9 +37,9 @@ var _ = Describe("ChatApi", func() {
 		statisticsSaver = chat_repo.NewMockSaver(ctrl)
 
 		serviceDeps := &chat_service.Deps{
-			StorageRepo:     chatStorage,
-			QueueConsumer:   chatQueue,
-			StatisticsSaver: statisticsSaver,
+			StorageRepo:      chatStorage,
+			QueueConsumer:    chatQueue,
+			StorageRepoSaver: statisticsSaver,
 		}
 
 		chatService = chat_service.New(serviceDeps)

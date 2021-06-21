@@ -5,6 +5,7 @@ option go_package = "./;chat_api";
 package chat_api;
 
 service ChatApi {
+    rpc CreateMultipleChat (CreateMultipleChatRequest) returns (CreateMultipleChatResponse);
     rpc CreateChat (CreateChatRequest) returns (CreateChatResponse);
     rpc DescribeChat (DescribeChatRequest) returns (DescribeChatResponse);
     rpc ListChats (ListChatsRequest) returns (ListChatsResponse);
@@ -15,6 +16,13 @@ message CreateChatRequest {
     uint64 classroom_id = 1;
     string link = 2;
 }
+
+message CreateMultipleChatRequest {
+    repeated uint64 classroom_id = 1;
+    repeated string link = 2;
+}
+
+message CreateMultipleChatResponse {}
 
 message CreateChatResponse {
     uint64 id = 1;

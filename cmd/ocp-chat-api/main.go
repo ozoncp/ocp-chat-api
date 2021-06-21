@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/Shopify/sarama"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_queue"
 	"github.com/ozoncp/ocp-chat-api/internal/db"
@@ -80,9 +80,7 @@ func Run() error {
 
 	const defaultKafkaTopic = "chats"
 	const defaultKafkaPartition = 0
-	const defaultKafkaTransport = "tcp"
 	const defaultKafkaAddr = "kafka-1:9092"
-	const defaultKafkaReadTimeout = 10 * time.Second
 
 	kafkaReader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:   []string{defaultKafkaAddr},
@@ -116,29 +114,30 @@ func Run() error {
 	// statistics module
 	statisticsRepo := chat_repo.NewRepoInMemory()
 
-	statisticsFlusherDeps := chat_flusher.Deps{
-		ChunkSize: 1,
+	storageRepoFlusherDeps := chat_flusher.Deps{
+		ChunkSize: 2,
 	}
 
-	statisticsFlusher := chat_flusher.NewChatFlusher(statisticsFlusherDeps)
+	storageRepoFlusher := chat_flusher.NewChatFlusher(storageRepoFlusherDeps)
 
-	statisticSaverDeps := &saver.Deps{
+	storageSaverDeps := &saver.Deps{
 		Capacity:    1000,
-		FlusherHere: statisticsFlusher,
+		FlusherHere: storageRepoFlusher,
 		Repository:  statisticsRepo,
 		FlushPeriod: 10 * time.Second,
 		Strategy:    saver.RemoveOldest,
 	}
-	statisticsSaver := saver.New(statisticSaverDeps)
+	storageSaver := saver.New(storageSaverDeps)
 
 	serviceDeps := &chat_service.Deps{
-		StorageRepo:     chatStorage,
-		QueueConsumer:   chatQueue,
-		StatisticsSaver: statisticsSaver,
+		StorageRepo:      chatStorage,
+		QueueConsumer:    chatQueue,
+		StorageRepoSaver: storageSaver,
 	}
 
 	chatService := chat_service.New(serviceDeps)
 	chatAPI := chat_api.New(chatService)
+
 	// api
 	listener, err := net.Listen(defaultTransportProtocol, cfg.GRPCAddr)
 	if err != nil {
@@ -238,33 +237,4 @@ func prepareMessage(topic, mess string) *sarama.ProducerMessage {
 		Value:     sarama.StringEncoder(mess),
 	}
 	return msg
-}
-
-func subscribe(topic string, consumer sarama.Consumer) error {
-
-	pl, err := consumer.Partitions(topic)
-	if err != nil {
-		return errors.Wrap(err, "partition")
-	}
-
-	initialOffset := sarama.OffsetOldest
-
-	for _, pt := range pl {
-		pc, err := consumer.ConsumePartition(topic, pt, initialOffset)
-		if err != nil {
-			defaultLogger.Err(err).Msgf("cannot consume partition. topic: %+v, pl %+v, pt %+v, offset %+v", topic, pl, pt, initialOffset)
-			time.Sleep(1 * time.Second)
-			continue
-		}
-		go func(pc sarama.PartitionConsumer) {
-			for message := range pc.Messages() {
-				messageRecieved(message)
-			}
-		}(pc)
-	}
-	return nil
-}
-
-func messageRecieved(mess *sarama.ConsumerMessage) {
-	fmt.Printf("%v\n", string(mess.Value))
 }

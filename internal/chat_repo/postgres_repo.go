@@ -3,9 +3,11 @@ package chat_repo
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 var ErrNoRowsToDelete = errors.New("no chat with this params")
@@ -63,6 +65,35 @@ func (p *PostgresRepo) GetAll(ctx context.Context) ([]*chat.Chat, error) {
 
 	return chats, nil
 }
+
+func (p *PostgresRepo) AddBatch(ctx context.Context, chats []*chat.Chat) error {
+	logger := utils.LoggerFromCtxOrCreate(ctx).With().Logger()
+	logger = logger.With().
+		Str("component", "postgres_repo").
+		Uint64("classroom_id", chats[0].ClassroomID).
+		Str("link", chats[0].Link).Logger()
+	logger.Info().Msg("insert many")
+
+	bracketsClassAndLink := []string{}
+	values := []interface{}{}
+	for i, ch := range chats {
+		bracketsClassAndLink = append(bracketsClassAndLink, fmt.Sprintf("($%d, $%d)", i * 2, i * 2 + 1))
+		values = append(values, ch.ClassroomID)
+		values = append(values, ch.Link)
+	}
+
+	query := fmt.Sprintf(`INSERT INTO chats (classroom_id, link) VALUES %s;`,
+		strings.Join(bracketsClassAndLink, ", "))
+
+	_, err := p.DB.ExecContext(ctx, query, values)
+	if err != nil {
+		return errors.Wrap(err, "insert multiple")
+	}
+
+	return nil
+}
+
+
 func (p *PostgresRepo) Insert(ctx context.Context, classroomID uint64, link string) (*chat.Chat, error) {
 	logger := utils.LoggerFromCtxOrCreate(ctx).With().Logger()
 	logger = logger.With().

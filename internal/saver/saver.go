@@ -58,10 +58,10 @@ func New(deps *Deps) *BufferingSaver {
 	}
 }
 
-func (s *BufferingSaver) Save(ctx context.Context, chat *chat.Chat) error {
+func (s *BufferingSaver) Save(ctx context.Context, chat ...*chat.Chat) error {
 	s.chatsGuard.Lock()
 	defer s.chatsGuard.Unlock()
-	s.bufferChats = append(s.bufferChats, chat)
+	s.bufferChats = append(s.bufferChats, chat...)
 	return nil
 }
 
