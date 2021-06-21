@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/Shopify/sarama"
-
 	"github.com/ozoncp/ocp-chat-api/internal/db"
 	"github.com/ozoncp/ocp-chat-api/internal/saver"
 	"net"
@@ -80,7 +79,7 @@ func Run() error {
 	const defaultKafkaTopic = "chats"
 	const defaultKafkaPartition = 0
 	const defaultKafkaTransport = "tcp"
-	const defaultKafkaAddr = "kafka:9092"
+	const defaultKafkaAddr = "kafka-1:9092"
 	const defaultKafkaReadTimeout = 10 * time.Second
 	//
 	//kafkaReader := kafka.NewReader(kafka.ReaderConfig{
@@ -245,6 +244,7 @@ func subscribe(topic string, consumer sarama.Consumer) error {
 		pc, err := consumer.ConsumePartition(topic, pt, initialOffset)
 		if err != nil {
 			defaultLogger.Err(err).Msgf("cannot consume partition. topic: %+v, pl %+v, pt %+v, offset %+v", topic, pl, pt, initialOffset)
+			time.Sleep(1 * time.Second)
 			continue
 		}
 		go func(pc sarama.PartitionConsumer) {
