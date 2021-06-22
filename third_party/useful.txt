@@ -1,0 +1,5 @@
+migrate -database "postgres://user1:example@127.0.0.1:5432/chat_db?sslmode=disable" -path migrations version
+(запускаем из папки с проектом, т к адрес относительный)
+
+grpcui -plaintext -proto pkg/chat_api/ocp-chat-api.proto 127.0.0.1:5300
+(Запускаем из папки с проектом, т к адрес относительный!)

@@ -36,11 +36,12 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // CreateChat mocks base method.
-func (m *MockService) CreateChat(ctx context.Context, classroom uint64, link string) error {
+func (m *MockService) CreateChat(ctx context.Context, classroom uint64, link string) (*chat.Chat, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateChat", ctx, classroom, link)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*chat.Chat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateChat indicates an expected call of CreateChat.
@@ -65,10 +66,10 @@ func (mr *MockServiceMockRecorder) DescribeChat(ctx, id interface{}) *gomock.Cal
 }
 
 // ListChats mocks base method.
-func (m *MockService) ListChats(ctx context.Context) ([]string, error) {
+func (m *MockService) ListChats(ctx context.Context) ([]*chat.Chat, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListChats", ctx)
-	ret0, _ := ret[0].([]string)
+	ret0, _ := ret[0].([]*chat.Chat)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

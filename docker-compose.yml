@@ -1,0 +1,36 @@
+version: '3.3'
+
+services:
+  ocp-chat-api:
+    image: repo_addr.com/ocp-development-group/ocp-chat-api:${TAG}
+    build: .
+    restart: always
+    env_file:
+      - cmd/ocp-chat-api/conf.env
+    ports:
+      - 8888:80
+      - 5300:5300
+
+    depends_on:
+      - db
+
+    networks:
+      - backend
+
+  db:
+    image: repo_addr.com/ocp-development-group/postgres:${TAG}
+    build: third_party/db
+    restart: always
+    environment:
+      POSTGRES_USER: user1
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: chat_db
+    volumes:
+      - /Users/vvakhlyn/go/src/github.com/letsdoitnow7777/ocp-chat-api/third_party/db/postgres_data:/var/lib/postgresql
+    ports:
+      - 5432:5432
+    networks:
+      - backend
+
+networks:
+  backend:

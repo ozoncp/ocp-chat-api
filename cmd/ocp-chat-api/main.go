@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/ozoncp/ocp-chat-api/internal/db"
 	"github.com/ozoncp/ocp-chat-api/internal/saver"
 	"net"
 	"os"
@@ -37,18 +38,6 @@ func Run() error {
 	defaultLogger.Info().Msg("Hi, Victor Akhlynin will write this project")
 
 	defaultLogger.Info().Msgf("started service %v", os.Args[0])
-	for i := 0; i < 5; i++ {
-		f, err := os.Open("go.mod")
-		if err != nil {
-			return errors.Wrap(err, "open file")
-		}
-		defaultLogger.Info().Msg("open successful")
-		defer func() {
-			if err := f.Close(); err != nil {
-				defaultLogger.Error().Err(err).Msg("close file bad")
-			}
-		}()
-	}
 
 	cfg := NewDefaultConfig()
 	if err := envconfig.Process("", cfg); err != nil {
@@ -56,7 +45,32 @@ func Run() error {
 	}
 
 	// persistent storage interaction
-	chatStorage := chat_repo.NewRepoInMemory() // future postgres
+	ctx := context.Background()
+	ctx = defaultLogger.WithContext(ctx)
+
+	dbConfig := &db.DatabaseConf{
+		Host:             cfg.DatabaseCfg.Host,
+		Port:             cfg.DatabaseCfg.Port,
+		User:             cfg.DatabaseCfg.User,
+		Password:         cfg.DatabaseCfg.Password,
+		DBName:           cfg.DatabaseCfg.DatabaseName,
+		Timeout:          defaultSQLTimeout,
+		MaxAllowedPacket: defaultSQLMaxAllowedPacket,
+		MultiStatements:  defaultSQLMultiStatements,
+	}
+
+	migrateConfig := &db.MigrateConf{
+		MigrationsURL:      cfg.DatabaseCfg.MigrationsURL,
+		MigrationRun:       cfg.DatabaseCfg.MigrationRun,
+		MigrationDBVersion: cfg.DatabaseCfg.MigrationDBVersion,
+	}
+
+	sqlDB, err := db.InitAndCreateDB(ctx, dbConfig, migrateConfig)
+	if err != nil {
+		return errors.Wrap(err, "init and create db")
+	}
+
+	chatStorage := chat_repo.NewPostgresRepo(sqlDB)
 
 	// our i/o channel with chat objects
 	chatQueue := chat_repo.NewRepoInMemory() // future Kafka
@@ -97,7 +111,6 @@ func Run() error {
 	grpcServer := grpc.NewServer(opts...)
 	chat_api.RegisterChatApiServer(grpcServer, chatAPI)
 
-	ctx := context.Background()
 	runner, ctx := errgroup.WithContext(ctx)
 	logger := defaultLogger
 
