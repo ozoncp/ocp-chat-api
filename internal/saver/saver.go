@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/opentracing/opentracing-go"
+
 	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 
@@ -63,6 +65,8 @@ func New(deps *Deps) *BufferingSaver {
 func (s *BufferingSaver) Save(ctx context.Context, chat ...*chat.Chat) error {
 	logger := utils.LoggerFromCtxOrCreate(ctx)
 	logger.Info().Msg("saver request create multiple chats")
+	secondLevelSpan, ctx := opentracing.StartSpanFromContext(ctx, "save works here")
+	defer secondLevelSpan.Finish()
 	s.chatsGuard.Lock()
 	defer s.chatsGuard.Unlock()
 	s.bufferChats = append(s.bufferChats, chat...)
@@ -81,6 +85,10 @@ func (s *BufferingSaver) Run(ctx context.Context) error {
 		case <-ticker.C:
 			logger := utils.LoggerFromCtxOrCreate(ctx)
 			logger.Debug().Msgf("flusher flushes, bufferchats len : %v", len(s.bufferChats))
+
+			firstLevelSpan, ctx := opentracing.StartSpanFromContext(ctx, "BufferingSaver tick")
+			defer firstLevelSpan.Finish()
+
 			if err := s.flusher.Flush(ctx, s.repo, s.bufferChats); err != nil {
 				logger.Err(err).Msg("flush by ticker")
 			}

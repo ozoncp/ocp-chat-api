@@ -2,6 +2,9 @@ package chat_service
 
 import (
 	"context"
+
+	"github.com/opentracing/opentracing-go"
+
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
@@ -51,6 +54,10 @@ func New(deps *Deps) *ChatService {
 func (s *ChatService) CreateMultipleChat(ctx context.Context, classroom []uint64, link []string) error {
 	logger := utils.LoggerFromCtxOrCreate(ctx)
 	logger.Info().Msg("chat service request create multiple chats")
+
+	headSpan, ctx := opentracing.StartSpanFromContext(ctx, "Creating multiple chats")
+	defer headSpan.Finish()
+
 	if len(classroom) != len(link) {
 		return errors.Wrap(errors.New("different lengths of elements arrays in multiple addition"), "init multi_create_chat")
 	}

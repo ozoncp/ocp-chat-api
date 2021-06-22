@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/opentracing/opentracing-go"
+
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/pkg/errors"
@@ -76,6 +78,9 @@ func (p *PostgresRepo) AddBatch(ctx context.Context, chats []*chat.Chat) error {
 		Uint64("classroom_id", chats[0].ClassroomID).
 		Str("link", chats[0].Link).Logger()
 	logger.Info().Msg("insert many")
+
+	thirdLevelSpan, ctx := opentracing.StartSpanFromContext(ctx, "AddBatch")
+	defer thirdLevelSpan.Finish()
 
 	bracketsClassAndLink := []string{}
 	values := []interface{}{}

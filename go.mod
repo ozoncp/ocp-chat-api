@@ -13,6 +13,7 @@ require (
 	github.com/lib/pq v1.10.2 // indirect
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
+	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.22.0
 	github.com/segmentio/kafka-go v0.4.16

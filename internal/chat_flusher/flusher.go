@@ -3,6 +3,8 @@ package chat_flusher
 import (
 	"context"
 
+	"github.com/opentracing/opentracing-go"
+
 	"github.com/pkg/errors"
 
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
@@ -33,6 +35,10 @@ func (f *ChatFlusher) Flush(ctx context.Context, repo FlushableChatRepo, chats [
 	logger := utils.LoggerFromCtxOrCreate(ctx)
 	chunks := utils.SplitChatsListToChunks(f.chunkSize, chats...)
 	logger.Debug().Int("num_chunks", len(chunks)).Msg("flush")
+
+	secondLevelSpan, ctx := opentracing.StartSpanFromContext(ctx, "Flusher")
+	defer secondLevelSpan.Finish()
+
 	for _, chunk := range chunks {
 		logger.Debug().Msgf("msg: %v\n", chunk)
 		if err := repo.AddBatch(ctx, chunk); err != nil {
