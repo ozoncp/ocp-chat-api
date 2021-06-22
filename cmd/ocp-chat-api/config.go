@@ -10,9 +10,16 @@ const (
 	defaultSQLMaxAllowedPacket = 4096
 )
 
-const defaultKafkaTopic = "chats"
-const defaultKafkaHost = "kafka-1"
-const defaultKafkaPort = "9092"
+const (
+	defaultKafkaTopic = "chats"
+	defaultKafkaHost  = "kafka-1"
+	defaultKafkaPort  = "9092"
+)
+
+const (
+	defaultStorageFlusherPeriod   = 10 * time.Second
+	defaultStorageFlusherCapacity = 1000
+)
 
 const (
 	defaultSQLHost     = "postgres"
@@ -61,10 +68,12 @@ type KafkaConfig struct {
 }
 
 type Config struct {
-	HTTPAddr    string `envconfig:"HTTP_ADDR"`
-	GRPCAddr    string `envconfig:"GRPC_ADDR"`
-	DatabaseCfg DatabaseConfig
-	KafkaCfg    KafkaConfig
+	HTTPAddr               string `envconfig:"HTTP_ADDR"`
+	GRPCAddr               string `envconfig:"GRPC_ADDR"`
+	DatabaseCfg            DatabaseConfig
+	KafkaCfg               KafkaConfig
+	StorageFlusherPeriod   time.Duration `envconfig:"STORAGE_FLUSHER_PERIOD"`
+	StorageFlusherCapacity int64         `envconfig:"STORAGE_FLUSHER_CAPACITY"`
 }
 
 func NewDefaultConfig() *Config {
@@ -91,5 +100,7 @@ func NewDefaultConfig() *Config {
 			Port:  defaultKafkaPort,
 			Topic: defaultKafkaTopic,
 		},
+		StorageFlusherPeriod:   defaultStorageFlusherPeriod,
+		StorageFlusherCapacity: defaultStorageFlusherCapacity,
 	}
 }

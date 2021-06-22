@@ -2,10 +2,11 @@ package saver
 
 import (
 	"context"
-	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
-	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"sync"
 	"time"
+
+	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
+	"github.com/ozoncp/ocp-chat-api/internal/utils"
 
 	"github.com/pkg/errors"
 
@@ -81,8 +82,9 @@ func (s *BufferingSaver) Run(ctx context.Context) error {
 			logger := utils.LoggerFromCtxOrCreate(ctx)
 			logger.Info().Msgf("flusher flushes, bufferchats len : %v", len(s.bufferChats))
 			if err := s.flusher.Flush(ctx, s.repo, s.bufferChats); err != nil {
-				return errors.Wrap(err, "flush by ticker")
+				logger.Err(err).Msg("flush by ticker")
 			}
+			s.bufferChats = []*chat.Chat{}
 		}
 	}
 }

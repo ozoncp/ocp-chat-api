@@ -4,14 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
+
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/pkg/errors"
-	"strings"
 )
 
-var ErrNoRowsToDelete = errors.New("no chat with this params")
-var ErrMoreThan1Created = errors.New("more than 1 entry added, it's prohibited")
+var (
+	ErrNoRowsToDelete   = errors.New("no chat with this params")
+	ErrMoreThan1Created = errors.New("more than 1 entry added, it's prohibited")
+)
 
 type PostgresRepo struct {
 	DB *sql.DB
@@ -77,22 +80,21 @@ func (p *PostgresRepo) AddBatch(ctx context.Context, chats []*chat.Chat) error {
 	bracketsClassAndLink := []string{}
 	values := []interface{}{}
 	for i, ch := range chats {
-		bracketsClassAndLink = append(bracketsClassAndLink, fmt.Sprintf("($%d, $%d)", i * 2, i * 2 + 1))
+		bracketsClassAndLink = append(bracketsClassAndLink, fmt.Sprintf("($%d, $%d)", i*2+1, i*2+2))
 		values = append(values, ch.ClassroomID)
 		values = append(values, ch.Link)
 	}
 
 	query := fmt.Sprintf(`INSERT INTO chats (classroom_id, link) VALUES %s;`,
 		strings.Join(bracketsClassAndLink, ", "))
-
-	_, err := p.DB.ExecContext(ctx, query, values)
+	logger.Info().Msgf("query: %s, len of values: %d", query, len(values))
+	_, err := p.DB.ExecContext(ctx, query, values...)
 	if err != nil {
 		return errors.Wrap(err, "insert multiple")
 	}
 
 	return nil
 }
-
 
 func (p *PostgresRepo) Insert(ctx context.Context, classroomID uint64, link string) (*chat.Chat, error) {
 	logger := utils.LoggerFromCtxOrCreate(ctx).With().Logger()

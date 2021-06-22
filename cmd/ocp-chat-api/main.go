@@ -2,16 +2,15 @@ package main
 
 import (
 	"context"
+	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Shopify/sarama"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_queue"
 	"github.com/ozoncp/ocp-chat-api/internal/db"
 	"github.com/ozoncp/ocp-chat-api/internal/saver"
-	"net"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/rs/zerolog"
 
@@ -87,7 +86,7 @@ func Run() error {
 	if err != nil {
 		return errors.Wrap(err, "new consumer")
 	}
-	//fixme maybe defer close()
+	// fixme maybe defer close()
 
 	chatQueue := chat_queue.NewKafkaConsumer(consumer, 4, cfg.KafkaCfg.Topic)
 
@@ -101,7 +100,7 @@ func Run() error {
 		Capacity:    1000,
 		FlusherHere: storageRepoFlusher,
 		Repository:  chatStorage,
-		FlushPeriod: 10 * time.Second,
+		FlushPeriod: cfg.StorageFlusherPeriod,
 		Strategy:    saver.RemoveOldest,
 	}
 	storageSaver := saver.New(storageSaverDeps)
