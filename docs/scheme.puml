@@ -33,13 +33,12 @@ grpcAPIService --> Saver
 Saver --> BufferingSaver
 BufferingSaver --> Flusher
 BufferingSaver --> FlushableRepo
-Flusher --> ClickhouseFlusher
-ClickhouseFlusher -> FlushableRepo
-FlushableRepo --> InMemoryRepo1
+Flusher --> ChatFlusher
+ChatFlusher -> FlushableRepo
+FlushableRepo --> PostgresRepo
 note right on link
-statisticsRepo
-(later will be ClickhouseRepo,
-now stub here)
+repo that can get batches of entities
+
 end note
 
 
@@ -49,14 +48,13 @@ Repo --> PostgresRepo
 note right on link
 chatStorage
 end note
-
-'kafka
-grpcAPIService --> Repo
-Repo --> InMemoryRepo
-note right on link
-queueRepo
-(later will be KafkaRepo,
-now stub here)
-end note
+'
+''kafka
+'Repo --> InMemoryRepo
+'note right on link
+'queueRepo
+'(later will be KafkaRepo,
+'now stub here)
+'end note
 
 @enduml
