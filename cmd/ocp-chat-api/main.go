@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,6 +12,7 @@ import (
 	"github.com/ozoncp/ocp-chat-api/internal/chat_queue"
 	"github.com/ozoncp/ocp-chat-api/internal/db"
 	"github.com/ozoncp/ocp-chat-api/internal/saver"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/rs/zerolog"
 
@@ -41,6 +43,7 @@ func Run() error {
 
 	defaultLogger.Info().Msgf("started service %v", os.Args[0])
 
+	chat_repo.InitMetrics()
 	cfg := NewDefaultConfig()
 	if err := envconfig.Process("", cfg); err != nil {
 		return errors.Wrap(err, "read config from env")
@@ -129,6 +132,14 @@ func Run() error {
 
 	runner.Go(func() error {
 		return WaitInterruptFromOS(ctx)
+	})
+
+	runner.Go(func() error {
+		http.Handle("/metrics", promhttp.Handler())
+		if err := http.ListenAndServe(":1337", nil); err != nil {
+			return errors.Wrap(err, "metrics server")
+		}
+		return nil
 	})
 
 	runner.Go(func() error {

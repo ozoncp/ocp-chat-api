@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/opentracing/opentracing-go"
 
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
@@ -98,6 +100,7 @@ func (p *PostgresRepo) AddBatch(ctx context.Context, chats []*chat.Chat) error {
 		return errors.Wrap(err, "insert multiple")
 	}
 
+	ObjectsAddedToStorage.Add(float64(len(values)))
 	return nil
 }
 
@@ -191,4 +194,20 @@ func (p *PostgresRepo) Remove(ctx context.Context, chatID uint64) error {
 	}
 
 	return nil
+}
+
+var ObjectsAddedToStorage = prometheus.NewGauge(
+	prometheus.GaugeOpts{
+		Namespace: "storage",
+		Subsystem: "objects",
+		Name:      "added_total",
+		Help:      "How many objects are added to storage",
+	},
+)
+
+func InitMetrics() {
+	metrics := []prometheus.Collector{
+		ObjectsAddedToStorage,
+	}
+	prometheus.MustRegister(metrics...)
 }

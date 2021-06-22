@@ -15,11 +15,12 @@ require (
 	github.com/onsi/gomega v1.13.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.11.0
 	github.com/rs/zerolog v1.22.0
 	github.com/segmentio/kafka-go v0.4.16
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.26.0
 )
