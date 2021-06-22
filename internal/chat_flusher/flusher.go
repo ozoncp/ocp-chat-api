@@ -31,6 +31,8 @@ func NewChatFlusher(deps Deps) *ChatFlusher {
 }
 
 func (f *ChatFlusher) Flush(ctx context.Context, repo FlushableChatRepo, chats []*chat.Chat) error {
+	logger := utils.LoggerFromCtxOrCreate(ctx)
+	logger.Info().Msg("flush")
 	chunks := utils.SplitChatsListToChunks(f.chunkSize, chats...)
 	fmt.Printf("num of chunks: %d\n", len(chunks))
 	for _, chunk := range chunks {

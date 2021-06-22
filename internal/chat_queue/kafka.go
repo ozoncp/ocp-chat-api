@@ -12,6 +12,12 @@ import (
 	"time"
 )
 
+type KafkaConfig struct {
+	Addr  string
+	Port  string
+	Topic string
+}
+
 type Consumer struct {
 	kafkaConsumer sarama.Consumer
 	kafkaReader   *kafka.Reader
@@ -19,10 +25,9 @@ type Consumer struct {
 	topic         string
 }
 
-func NewKafkaConsumer(consumer sarama.Consumer, reader *kafka.Reader, batchSize int, topic string) *Consumer {
+func NewKafkaConsumer(consumer sarama.Consumer, batchSize int, topic string) *Consumer {
 	return &Consumer{
 		kafkaConsumer: consumer,
-		kafkaReader:   reader,
 		batchSize:     batchSize,
 		topic:         topic,
 	}
@@ -55,7 +60,6 @@ func (c *Consumer) ReadChatsBatch(ctx context.Context, batchSize int) ([]*chat.C
 
 func (c *Consumer) Run(ctx context.Context) error {
 	logger := utils.LoggerFromCtxOrCreate(ctx)
-	//ticker := time.NewTicker(1 * time.Second)
 
 	pl, err := c.kafkaConsumer.Partitions(c.topic)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
+	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/pkg/errors"
 )
 
@@ -48,6 +49,8 @@ func New(deps *Deps) *ChatService {
 }
 
 func (s *ChatService) CreateMultipleChat(ctx context.Context, classroom []uint64, link []string) error {
+	logger := utils.LoggerFromCtxOrCreate(ctx)
+	logger.Info().Msg("chat service request create multiple chats")
 	if len(classroom) != len(link) {
 		return errors.Wrap(errors.New("different lengths of elements arrays in multiple addition"), "init multi_create_chat")
 	}

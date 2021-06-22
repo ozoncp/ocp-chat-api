@@ -7,7 +7,6 @@ import (
 	"github.com/ozoncp/ocp-chat-api/internal/chat_queue"
 	"github.com/ozoncp/ocp-chat-api/internal/db"
 	"github.com/ozoncp/ocp-chat-api/internal/saver"
-	"github.com/segmentio/kafka-go"
 	"net"
 	"os"
 	"os/signal"
@@ -78,41 +77,19 @@ func Run() error {
 
 	// our queue Kafka
 
-	const defaultKafkaTopic = "chats"
-	const defaultKafkaPartition = 0
-	const defaultKafkaAddr = "kafka-1:9092"
-
-	kafkaReader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:   []string{defaultKafkaAddr},
-		Topic:     defaultKafkaTopic,
-		Partition: defaultKafkaPartition,
-		MinBytes:  10e3, // 10KB
-		MaxBytes:  10e6, // 10MB
-	})
-
 	//brokers := []string{defaultKafkaAddr}
 	//producer, err := newProducer(brokers)
 	//if err != nil {
 	//	return err // todo
 	//}
 
-	consumer, err := sarama.NewConsumer([]string{defaultKafkaAddr}, nil)
+	consumer, err := sarama.NewConsumer([]string{cfg.KafkaCfg.Host + ":" + cfg.KafkaCfg.Port}, nil)
 	if err != nil {
 		return errors.Wrap(err, "new consumer")
 	}
 	//fixme maybe defer close()
 
-	chatQueue := chat_queue.NewKafkaConsumer(consumer, kafkaReader, 4, defaultKafkaTopic)
-
-	//if err := subscribe(defaultKafkaTopic, consumer); err != nil {
-	//	return errors.Wrap(err, "subscribe")
-	//}
-	if err := kafkaReader.Close(); err != nil {
-		return errors.Wrap(err, "failed to close reader:")
-	}
-
-	// statistics module
-	statisticsRepo := chat_repo.NewRepoInMemory()
+	chatQueue := chat_queue.NewKafkaConsumer(consumer, 4, cfg.KafkaCfg.Topic)
 
 	storageRepoFlusherDeps := chat_flusher.Deps{
 		ChunkSize: 2,
@@ -123,7 +100,7 @@ func Run() error {
 	storageSaverDeps := &saver.Deps{
 		Capacity:    1000,
 		FlusherHere: storageRepoFlusher,
-		Repository:  statisticsRepo,
+		Repository:  chatStorage,
 		FlushPeriod: 10 * time.Second,
 		Strategy:    saver.RemoveOldest,
 	}
@@ -166,6 +143,13 @@ func Run() error {
 	runner.Go(func() error {
 		if err = chatQueue.Run(ctx); err != nil {
 			return errors.Wrap(err, "kafka chat queue run")
+		}
+		return nil
+	})
+
+	runner.Go(func() error {
+		if err = storageSaver.Run(ctx); err != nil {
+			return errors.Wrap(err, "storage saver run")
 		}
 		return nil
 	})

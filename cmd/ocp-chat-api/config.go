@@ -10,6 +10,10 @@ const (
 	defaultSQLMaxAllowedPacket = 4096
 )
 
+const defaultKafkaTopic = "chats"
+const defaultKafkaHost = "kafka-1"
+const defaultKafkaPort = "9092"
+
 const (
 	defaultSQLHost     = "postgres"
 	defaultSQLPort     = 5432
@@ -43,10 +47,24 @@ type DatabaseConfig struct {
 	MigrationDBVersion uint `envconfig:"MIGRATION_DB_VERSION"`
 }
 
+type KafkaConfig struct {
+	Host  string `envconfig:"KAFKA_HOST"    required:"true"`
+	Port  string `envconfig:"KAFKA_PORT" `
+	Topic string `envconfig:"KAFKA_TOPIC"   required:"true"`
+
+	// MigrationsURL is directory containing migration scripts.
+	MigrationsURL string `envconfig:"MIGRATION_FILES_LOCATION"`
+	// MigrationRun is a flag: if true, we should run migration to particular version.
+	MigrationRun bool `envconfig:"MIGRATION_RUN"`
+	// MigrationDBVersion is version of DB that we should migrate to.
+	MigrationDBVersion uint `envconfig:"MIGRATION_DB_VERSION"`
+}
+
 type Config struct {
 	HTTPAddr    string `envconfig:"HTTP_ADDR"`
 	GRPCAddr    string `envconfig:"GRPC_ADDR"`
 	DatabaseCfg DatabaseConfig
+	KafkaCfg    KafkaConfig
 }
 
 func NewDefaultConfig() *Config {
@@ -67,6 +85,11 @@ func NewDefaultConfig() *Config {
 			MigrationsURL:      defaultMigrationsURL,
 			MigrationRun:       defaultMigrationRun,
 			MigrationDBVersion: defaultMigrationDBVersion,
+		},
+		KafkaCfg: KafkaConfig{
+			Host:  defaultKafkaHost,
+			Port:  defaultKafkaPort,
+			Topic: defaultKafkaTopic,
 		},
 	}
 }

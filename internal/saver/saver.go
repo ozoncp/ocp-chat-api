@@ -3,6 +3,7 @@ package saver
 import (
 	"context"
 	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
+	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"sync"
 	"time"
 
@@ -59,6 +60,8 @@ func New(deps *Deps) *BufferingSaver {
 }
 
 func (s *BufferingSaver) Save(ctx context.Context, chat ...*chat.Chat) error {
+	logger := utils.LoggerFromCtxOrCreate(ctx)
+	logger.Info().Msg("saver request create multiple chats")
 	s.chatsGuard.Lock()
 	defer s.chatsGuard.Unlock()
 	s.bufferChats = append(s.bufferChats, chat...)
@@ -75,6 +78,8 @@ func (s *BufferingSaver) Run(ctx context.Context) error {
 			}
 			return errors.Wrap(ctx.Err(), "finish buffering saver by context done")
 		case <-ticker.C:
+			logger := utils.LoggerFromCtxOrCreate(ctx)
+			logger.Info().Msgf("flusher flushes, bufferchats len : %v", len(s.bufferChats))
 			if err := s.flusher.Flush(ctx, s.repo, s.bufferChats); err != nil {
 				return errors.Wrap(err, "flush by ticker")
 			}

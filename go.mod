@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/Shopify/sarama v1.29.0
-	github.com/fullstorydev/grpcui v1.1.0 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang-migrate/migrate/v4 v4.14.1
 	github.com/golang/mock v1.5.0
