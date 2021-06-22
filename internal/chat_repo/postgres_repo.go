@@ -87,7 +87,7 @@ func (p *PostgresRepo) AddBatch(ctx context.Context, chats []*chat.Chat) error {
 
 	query := fmt.Sprintf(`INSERT INTO chats (classroom_id, link) VALUES %s;`,
 		strings.Join(bracketsClassAndLink, ", "))
-	logger.Info().Msgf("query: %s, len of values: %d", query, len(values))
+	logger.Debug().Msgf("query: %s, len of values: %d", query, len(values))
 	_, err := p.DB.ExecContext(ctx, query, values...)
 	if err != nil {
 		return errors.Wrap(err, "insert multiple")

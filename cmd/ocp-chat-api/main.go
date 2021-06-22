@@ -75,14 +75,14 @@ func Run() error {
 	chatStorage := chat_repo.NewPostgresRepo(sqlDB)
 
 	// our queue Kafka
-
-	//brokers := []string{defaultKafkaAddr}
+	kafkaAddr := cfg.KafkaCfg.Host + ":" + cfg.KafkaCfg.Port
+	//brokers := []string{kafkaAddr}
 	//producer, err := newProducer(brokers)
 	//if err != nil {
-	//	return err // todo
+	//	return errors.Wrap(err, "create kafka producer")
 	//}
 
-	consumer, err := sarama.NewConsumer([]string{cfg.KafkaCfg.Host + ":" + cfg.KafkaCfg.Port}, nil)
+	consumer, err := sarama.NewConsumer([]string{kafkaAddr}, nil)
 	if err != nil {
 		return errors.Wrap(err, "new consumer")
 	}

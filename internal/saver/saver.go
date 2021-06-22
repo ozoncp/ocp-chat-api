@@ -80,7 +80,7 @@ func (s *BufferingSaver) Run(ctx context.Context) error {
 			return errors.Wrap(ctx.Err(), "finish buffering saver by context done")
 		case <-ticker.C:
 			logger := utils.LoggerFromCtxOrCreate(ctx)
-			logger.Info().Msgf("flusher flushes, bufferchats len : %v", len(s.bufferChats))
+			logger.Debug().Msgf("flusher flushes, bufferchats len : %v", len(s.bufferChats))
 			if err := s.flusher.Flush(ctx, s.repo, s.bufferChats); err != nil {
 				logger.Err(err).Msg("flush by ticker")
 			}

@@ -2,7 +2,6 @@ package chat_flusher
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/pkg/errors"
 
@@ -32,11 +31,10 @@ func NewChatFlusher(deps Deps) *ChatFlusher {
 
 func (f *ChatFlusher) Flush(ctx context.Context, repo FlushableChatRepo, chats []*chat.Chat) error {
 	logger := utils.LoggerFromCtxOrCreate(ctx)
-	logger.Info().Msg("flush")
 	chunks := utils.SplitChatsListToChunks(f.chunkSize, chats...)
-	fmt.Printf("num of chunks: %d\n", len(chunks))
+	logger.Debug().Int("num_chunks", len(chunks)).Msg("flush")
 	for _, chunk := range chunks {
-		fmt.Printf("msg: %v\n", chunk)
+		logger.Debug().Msgf("msg: %v\n", chunk)
 		if err := repo.AddBatch(ctx, chunk); err != nil {
 			return errors.Wrap(err, "flush batch of chats to chat repo")
 		}
