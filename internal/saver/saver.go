@@ -74,16 +74,17 @@ func (s *BufferingSaver) Save(ctx context.Context, chat ...*chat.Chat) error {
 }
 
 func (s *BufferingSaver) Run(ctx context.Context) error {
+	logger := utils.LoggerFromCtxOrCreate(ctx)
 	ticker := time.NewTicker(s.flushPeriod)
 	for {
 		select {
 		case <-ctx.Done():
+			logger.Debug().Msgf("flusher flushes last time, bufferchats len : %v", len(s.bufferChats))
 			if err := s.flusher.Flush(ctx, s.repo, s.bufferChats); err != nil {
 				return errors.Wrap(err, "flush by ctx done")
 			}
 			return errors.Wrap(ctx.Err(), "finish buffering saver by context done")
 		case <-ticker.C:
-			logger := utils.LoggerFromCtxOrCreate(ctx)
 			logger.Debug().Msgf("flusher flushes, bufferchats len : %v", len(s.bufferChats))
 
 			firstLevelSpan, ctx := opentracing.StartSpanFromContext(ctx, "BufferingSaver tick")
