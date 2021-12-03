@@ -9,9 +9,11 @@ ifeq ($(TAG),)
 TAG=$(subst /,-,$(shell git rev-parse --abbrev-ref HEAD))
 endif
 
-build:
+deps:
 	go mod tidy
 	go mod vendor
+
+build:
 	go build -o bin/ocp-chat-api ./cmd/ocp-chat-api
 
 run: build
@@ -42,8 +44,8 @@ docker-compose-up: generate-mocks grpc-proto docker-build
 	TAG=${TAG} docker-compose up --remove-orphans
 
 client:
-	go get github.com/fullstorydev/grpcui/...
-	go install github.com/fullstorydev/grpcui/cmd/grpcui@latest
+#	go get github.com/fullstorydev/grpcui/...
+#	go install github.com/fullstorydev/grpcui/cmd/grpcui@latest
 	grpcui -plaintext -proto pkg/chat_api/ocp-chat-api.proto 127.0.0.1:5300
 
-all: generate-mocks grpc-proto lint test docker-build docker-run
+all: grpc-proto deps build generate-mocks lint test docker-build

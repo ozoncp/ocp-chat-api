@@ -20,4 +20,6 @@ COPY --from=build-stage ${SRC_PATH}/bin/${RUNNING_BIN} /usr/local/bin/${RUNNING_
 COPY --from=build-stage ${SRC_PATH}/migrations ${SRC_PATH}/migrations
 WORKDIR ${SRC_PATH}
 
+EXPOSE 1337
+
 CMD ["ocp-chat-api"]

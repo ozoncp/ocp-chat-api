@@ -2,9 +2,13 @@ package saver
 
 import (
 	"context"
-	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
 	"sync"
 	"time"
+
+	"github.com/opentracing/opentracing-go"
+
+	"github.com/ozoncp/ocp-chat-api/internal/chat_flusher"
+	"github.com/ozoncp/ocp-chat-api/internal/utils"
 
 	"github.com/pkg/errors"
 
@@ -58,26 +62,38 @@ func New(deps *Deps) *BufferingSaver {
 	}
 }
 
-func (s *BufferingSaver) Save(ctx context.Context, chat *chat.Chat) error {
+func (s *BufferingSaver) Save(ctx context.Context, chat ...*chat.Chat) error {
+	logger := utils.LoggerFromCtxOrCreate(ctx)
+	logger.Info().Msg("saver request create multiple chats")
+	secondLevelSpan, ctx := opentracing.StartSpanFromContext(ctx, "save works here")
+	defer secondLevelSpan.Finish()
 	s.chatsGuard.Lock()
 	defer s.chatsGuard.Unlock()
-	s.bufferChats = append(s.bufferChats, chat)
+	s.bufferChats = append(s.bufferChats, chat...)
 	return nil
 }
 
 func (s *BufferingSaver) Run(ctx context.Context) error {
+	logger := utils.LoggerFromCtxOrCreate(ctx)
 	ticker := time.NewTicker(s.flushPeriod)
 	for {
 		select {
 		case <-ctx.Done():
+			logger.Debug().Msgf("flusher flushes last time, bufferchats len : %v", len(s.bufferChats))
 			if err := s.flusher.Flush(ctx, s.repo, s.bufferChats); err != nil {
 				return errors.Wrap(err, "flush by ctx done")
 			}
 			return errors.Wrap(ctx.Err(), "finish buffering saver by context done")
 		case <-ticker.C:
+			logger.Debug().Msgf("flusher flushes, bufferchats len : %v", len(s.bufferChats))
+
+			firstLevelSpan, ctx := opentracing.StartSpanFromContext(ctx, "BufferingSaver tick")
+			defer firstLevelSpan.Finish()
+
 			if err := s.flusher.Flush(ctx, s.repo, s.bufferChats); err != nil {
-				return errors.Wrap(err, "flush by ticker")
+				logger.Err(err).Msg("flush by ticker")
 			}
+			s.bufferChats = []*chat.Chat{}
 		}
 	}
 }

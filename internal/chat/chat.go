@@ -11,9 +11,9 @@ type Deps struct {
 }
 
 type Chat struct {
-	ID          uint64
-	ClassroomID uint64
-	Link        string
+	ID          uint64 `json:"id"`
+	ClassroomID uint64 `json:"classroom_id"`
+	Link        string `json:"link"`
 }
 
 func New(deps *Deps) *Chat {

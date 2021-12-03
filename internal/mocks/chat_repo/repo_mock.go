@@ -118,15 +118,58 @@ func (m *MockSaver) EXPECT() *MockSaverMockRecorder {
 }
 
 // Save mocks base method.
-func (m *MockSaver) Save(ctx context.Context, ch *chat.Chat) error {
+func (m *MockSaver) Save(ctx context.Context, ch ...*chat.Chat) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Save", ctx, ch)
+	varargs := []interface{}{ctx}
+	for _, a := range ch {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Save", varargs...)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Save indicates an expected call of Save.
-func (mr *MockSaverMockRecorder) Save(ctx, ch interface{}) *gomock.Call {
+func (mr *MockSaverMockRecorder) Save(ctx interface{}, ch ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockSaver)(nil).Save), ctx, ch)
+	varargs := append([]interface{}{ctx}, ch...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockSaver)(nil).Save), varargs...)
+}
+
+// MockMessageQueueConsumer is a mock of MessageQueueConsumer interface.
+type MockMessageQueueConsumer struct {
+	ctrl     *gomock.Controller
+	recorder *MockMessageQueueConsumerMockRecorder
+}
+
+// MockMessageQueueConsumerMockRecorder is the mock recorder for MockMessageQueueConsumer.
+type MockMessageQueueConsumerMockRecorder struct {
+	mock *MockMessageQueueConsumer
+}
+
+// NewMockMessageQueueConsumer creates a new mock instance.
+func NewMockMessageQueueConsumer(ctrl *gomock.Controller) *MockMessageQueueConsumer {
+	mock := &MockMessageQueueConsumer{ctrl: ctrl}
+	mock.recorder = &MockMessageQueueConsumerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockMessageQueueConsumer) EXPECT() *MockMessageQueueConsumerMockRecorder {
+	return m.recorder
+}
+
+// ReadChatsBatch mocks base method.
+func (m *MockMessageQueueConsumer) ReadChatsBatch(ctx context.Context, batchSize int) ([]*chat.Chat, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadChatsBatch", ctx, batchSize)
+	ret0, _ := ret[0].([]*chat.Chat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ReadChatsBatch indicates an expected call of ReadChatsBatch.
+func (mr *MockMessageQueueConsumerMockRecorder) ReadChatsBatch(ctx, batchSize interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadChatsBatch", reflect.TypeOf((*MockMessageQueueConsumer)(nil).ReadChatsBatch), ctx, batchSize)
 }

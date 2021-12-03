@@ -18,6 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChatApiClient interface {
+	CreateMultipleChat(ctx context.Context, in *CreateMultipleChatRequest, opts ...grpc.CallOption) (*CreateMultipleChatResponse, error)
 	CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*CreateChatResponse, error)
 	DescribeChat(ctx context.Context, in *DescribeChatRequest, opts ...grpc.CallOption) (*DescribeChatResponse, error)
 	ListChats(ctx context.Context, in *ListChatsRequest, opts ...grpc.CallOption) (*ListChatsResponse, error)
@@ -30,6 +31,15 @@ type chatApiClient struct {
 
 func NewChatApiClient(cc grpc.ClientConnInterface) ChatApiClient {
 	return &chatApiClient{cc}
+}
+
+func (c *chatApiClient) CreateMultipleChat(ctx context.Context, in *CreateMultipleChatRequest, opts ...grpc.CallOption) (*CreateMultipleChatResponse, error) {
+	out := new(CreateMultipleChatResponse)
+	err := c.cc.Invoke(ctx, "/chat_api.ChatApi/CreateMultipleChat", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *chatApiClient) CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*CreateChatResponse, error) {
@@ -72,6 +82,7 @@ func (c *chatApiClient) RemoveChat(ctx context.Context, in *RemoveChatRequest, o
 // All implementations must embed UnimplementedChatApiServer
 // for forward compatibility
 type ChatApiServer interface {
+	CreateMultipleChat(context.Context, *CreateMultipleChatRequest) (*CreateMultipleChatResponse, error)
 	CreateChat(context.Context, *CreateChatRequest) (*CreateChatResponse, error)
 	DescribeChat(context.Context, *DescribeChatRequest) (*DescribeChatResponse, error)
 	ListChats(context.Context, *ListChatsRequest) (*ListChatsResponse, error)
@@ -83,6 +94,9 @@ type ChatApiServer interface {
 type UnimplementedChatApiServer struct {
 }
 
+func (UnimplementedChatApiServer) CreateMultipleChat(context.Context, *CreateMultipleChatRequest) (*CreateMultipleChatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateMultipleChat not implemented")
+}
 func (UnimplementedChatApiServer) CreateChat(context.Context, *CreateChatRequest) (*CreateChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateChat not implemented")
 }
@@ -106,6 +120,24 @@ type UnsafeChatApiServer interface {
 
 func RegisterChatApiServer(s grpc.ServiceRegistrar, srv ChatApiServer) {
 	s.RegisterService(&ChatApi_ServiceDesc, srv)
+}
+
+func _ChatApi_CreateMultipleChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateMultipleChatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatApiServer).CreateMultipleChat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/chat_api.ChatApi/CreateMultipleChat",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatApiServer).CreateMultipleChat(ctx, req.(*CreateMultipleChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ChatApi_CreateChat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -187,6 +219,10 @@ var ChatApi_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "chat_api.ChatApi",
 	HandlerType: (*ChatApiServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateMultipleChat",
+			Handler:    _ChatApi_CreateMultipleChat_Handler,
+		},
 		{
 			MethodName: "CreateChat",
 			Handler:    _ChatApi_CreateChat_Handler,

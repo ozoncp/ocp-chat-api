@@ -3,13 +3,22 @@ package chat_repo
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"strings"
+
+	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/opentracing/opentracing-go"
+
 	"github.com/ozoncp/ocp-chat-api/internal/chat"
 	"github.com/ozoncp/ocp-chat-api/internal/utils"
 	"github.com/pkg/errors"
 )
 
-var ErrNoRowsToDelete = errors.New("no chat with this params")
-var ErrMoreThan1Created = errors.New("more than 1 entry added, it's prohibited")
+var (
+	ErrNoRowsToDelete   = errors.New("no chat with this params")
+	ErrMoreThan1Created = errors.New("more than 1 entry added, it's prohibited")
+)
 
 type PostgresRepo struct {
 	DB *sql.DB
@@ -63,6 +72,38 @@ func (p *PostgresRepo) GetAll(ctx context.Context) ([]*chat.Chat, error) {
 
 	return chats, nil
 }
+
+func (p *PostgresRepo) AddBatch(ctx context.Context, chats []*chat.Chat) error {
+	logger := utils.LoggerFromCtxOrCreate(ctx).With().Logger()
+	logger = logger.With().
+		Str("component", "postgres_repo").
+		Uint64("classroom_id", chats[0].ClassroomID).
+		Str("link", chats[0].Link).Logger()
+	logger.Info().Msg("insert many")
+
+	thirdLevelSpan, ctx := opentracing.StartSpanFromContext(ctx, "AddBatch")
+	defer thirdLevelSpan.Finish()
+
+	bracketsClassAndLink := []string{}
+	values := []interface{}{}
+	for i, ch := range chats {
+		bracketsClassAndLink = append(bracketsClassAndLink, fmt.Sprintf("($%d, $%d)", i*2+1, i*2+2))
+		values = append(values, ch.ClassroomID)
+		values = append(values, ch.Link)
+	}
+
+	query := fmt.Sprintf(`INSERT INTO chats (classroom_id, link) VALUES %s;`,
+		strings.Join(bracketsClassAndLink, ", "))
+	logger.Debug().Msgf("query: %s, len of values: %d", query, len(values))
+	_, err := p.DB.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "insert multiple")
+	}
+
+	ObjectsAddedToStorage.Add(float64(len(values)))
+	return nil
+}
+
 func (p *PostgresRepo) Insert(ctx context.Context, classroomID uint64, link string) (*chat.Chat, error) {
 	logger := utils.LoggerFromCtxOrCreate(ctx).With().Logger()
 	logger = logger.With().
@@ -153,4 +194,20 @@ func (p *PostgresRepo) Remove(ctx context.Context, chatID uint64) error {
 	}
 
 	return nil
+}
+
+var ObjectsAddedToStorage = prometheus.NewGauge(
+	prometheus.GaugeOpts{
+		Namespace: "storage",
+		Subsystem: "objects",
+		Name:      "added_total",
+		Help:      "How many objects are added to storage",
+	},
+)
+
+func InitMetrics() {
+	metrics := []prometheus.Collector{
+		ObjectsAddedToStorage,
+	}
+	prometheus.MustRegister(metrics...)
 }

@@ -50,6 +50,20 @@ func (mr *MockServiceMockRecorder) CreateChat(ctx, classroom, link interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChat", reflect.TypeOf((*MockService)(nil).CreateChat), ctx, classroom, link)
 }
 
+// CreateMultipleChat mocks base method.
+func (m *MockService) CreateMultipleChat(ctx context.Context, classroom []uint64, link []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateMultipleChat", ctx, classroom, link)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateMultipleChat indicates an expected call of CreateMultipleChat.
+func (mr *MockServiceMockRecorder) CreateMultipleChat(ctx, classroom, link interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateMultipleChat", reflect.TypeOf((*MockService)(nil).CreateMultipleChat), ctx, classroom, link)
+}
+
 // DescribeChat mocks base method.
 func (m *MockService) DescribeChat(ctx context.Context, id uint64) (*chat.Chat, error) {
 	m.ctrl.T.Helper()

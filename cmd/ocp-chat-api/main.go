@@ -2,13 +2,17 @@ package main
 
 import (
 	"context"
-	"github.com/ozoncp/ocp-chat-api/internal/db"
-	"github.com/ozoncp/ocp-chat-api/internal/saver"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
+
+	"github.com/Shopify/sarama"
+	"github.com/ozoncp/ocp-chat-api/internal/chat_queue"
+	"github.com/ozoncp/ocp-chat-api/internal/db"
+	"github.com/ozoncp/ocp-chat-api/internal/saver"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/rs/zerolog"
 
@@ -39,12 +43,13 @@ func Run() error {
 
 	defaultLogger.Info().Msgf("started service %v", os.Args[0])
 
+	chat_repo.InitMetrics()
 	cfg := NewDefaultConfig()
 	if err := envconfig.Process("", cfg); err != nil {
 		return errors.Wrap(err, "read config from env")
 	}
 
-	// persistent storage interaction
+	// persistent storage for chats in Postgres
 	ctx := context.Background()
 	ctx = defaultLogger.WithContext(ctx)
 
@@ -72,35 +77,46 @@ func Run() error {
 
 	chatStorage := chat_repo.NewPostgresRepo(sqlDB)
 
-	// our i/o channel with chat objects
-	chatQueue := chat_repo.NewRepoInMemory() // future Kafka
+	// our queue Kafka
+	kafkaAddr := cfg.KafkaCfg.Host + ":" + cfg.KafkaCfg.Port
+	//brokers := []string{kafkaAddr}
+	//producer, err := newProducer(brokers)
+	//if err != nil {
+	//	return errors.Wrap(err, "create kafka producer")
+	//}
 
-	// statistics module
-	statisticsRepo := chat_repo.NewRepoInMemory()
+	consumer, err := sarama.NewConsumer([]string{kafkaAddr}, nil)
+	if err != nil {
+		return errors.Wrap(err, "new consumer")
+	}
+	// fixme maybe defer close()
 
-	statisticsFlusherDeps := chat_flusher.Deps{
-		ChunkSize: 1,
+	chatQueue := chat_queue.NewKafkaConsumer(consumer, 4, cfg.KafkaCfg.Topic)
+
+	storageRepoFlusherDeps := chat_flusher.Deps{
+		ChunkSize: 2,
 	}
 
-	statisticsFlusher := chat_flusher.NewChatFlusher(statisticsFlusherDeps)
+	storageRepoFlusher := chat_flusher.NewChatFlusher(storageRepoFlusherDeps)
 
-	statisticSaverDeps := &saver.Deps{
+	storageSaverDeps := &saver.Deps{
 		Capacity:    1000,
-		FlusherHere: statisticsFlusher,
-		Repository:  statisticsRepo,
-		FlushPeriod: 10 * time.Second,
+		FlusherHere: storageRepoFlusher,
+		Repository:  chatStorage,
+		FlushPeriod: cfg.StorageFlusherPeriod,
 		Strategy:    saver.RemoveOldest,
 	}
-	statisticsSaver := saver.New(statisticSaverDeps)
+	storageSaver := saver.New(storageSaverDeps)
 
 	serviceDeps := &chat_service.Deps{
-		StorageRepo:     chatStorage,
-		QueueRepo:       chatQueue,
-		StatisticsSaver: statisticsSaver,
+		StorageRepo:      chatStorage,
+		QueueConsumer:    chatQueue,
+		StorageRepoSaver: storageSaver,
 	}
 
 	chatService := chat_service.New(serviceDeps)
 	chatAPI := chat_api.New(chatService)
+
 	// api
 	listener, err := net.Listen(defaultTransportProtocol, cfg.GRPCAddr)
 	if err != nil {
@@ -119,9 +135,31 @@ func Run() error {
 	})
 
 	runner.Go(func() error {
+		http.Handle("/metrics", promhttp.Handler())
+		if err := http.ListenAndServe(":1337", nil); err != nil {
+			return errors.Wrap(err, "metrics server")
+		}
+		return nil
+	})
+
+	runner.Go(func() error {
 		logger.Info().Msg("Start serving grpc api")
 		if err := grpcServer.Serve(listener); err != nil {
 			return errors.Wrap(err, "grpc server serve")
+		}
+		return nil
+	})
+
+	runner.Go(func() error {
+		if err = chatQueue.Run(ctx); err != nil {
+			return errors.Wrap(err, "kafka chat queue run")
+		}
+		return nil
+	})
+
+	runner.Go(func() error {
+		if err = storageSaver.Run(ctx); err != nil {
+			return errors.Wrap(err, "storage saver run")
 		}
 		return nil
 	})
@@ -175,4 +213,22 @@ func DefaultOSSignals() []os.Signal {
 
 func InterruptedFromOS(err error) bool {
 	return errors.Is(err, ErrOSSignalInterrupt)
+}
+
+func newProducer(brokers []string) (sarama.SyncProducer, error) {
+	config := sarama.NewConfig()
+	config.Producer.Partitioner = sarama.NewRandomPartitioner
+	config.Producer.RequiredAcks = sarama.WaitForAll
+	config.Producer.Return.Successes = true
+	producer, err := sarama.NewSyncProducer(brokers, config)
+	return producer, err
+}
+
+func prepareMessage(topic, mess string) *sarama.ProducerMessage {
+	msg := &sarama.ProducerMessage{
+		Topic:     topic,
+		Partition: -1,
+		Value:     sarama.StringEncoder(mess),
+	}
+	return msg
 }

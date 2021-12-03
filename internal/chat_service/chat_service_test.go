@@ -16,7 +16,7 @@ var _ = Describe("ChatApi", func() {
 		ctrl *gomock.Controller
 
 		chatStorage     *chat_repo.MockRepo
-		chatQueue       *chat_repo.MockRepo
+		chatQueue       *chat_repo.MockMessageQueueConsumer
 		statisticsSaver *chat_repo.MockSaver
 
 		chatService chat_api.Service
@@ -33,13 +33,13 @@ var _ = Describe("ChatApi", func() {
 		ctrl = gomock.NewController(GinkgoT())
 
 		chatStorage = chat_repo.NewMockRepo(ctrl)
-		chatQueue = chat_repo.NewMockRepo(ctrl)
+		chatQueue = chat_repo.NewMockMessageQueueConsumer(ctrl)
 		statisticsSaver = chat_repo.NewMockSaver(ctrl)
 
 		serviceDeps := &chat_service.Deps{
-			StorageRepo:     chatStorage,
-			QueueRepo:       chatQueue,
-			StatisticsSaver: statisticsSaver,
+			StorageRepo:      chatStorage,
+			QueueConsumer:    chatQueue,
+			StorageRepoSaver: statisticsSaver,
 		}
 
 		chatService = chat_service.New(serviceDeps)
